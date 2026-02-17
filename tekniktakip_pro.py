@@ -38,22 +38,11 @@ def save_data(df, key):
 def initialize_system():
     if not os.path.exists(FILES["sorular"]):
         varsayilan_sorular = [
-            # --- ELEKTRİK ---
-            {"Bolum": "Elektrik", "Soru": """1. Asansörler normal çalışıyor mu?"""},
-            {"Bolum": "Elektrik", "Soru": """2. Asansör makine dairesi klimaları çalışıyor mu?"""},
-            {"Bolum": "Elektrik", "Soru": """3. Bahçe aydınlatmaları yanıyor mu?"""},
-            {"Bolum": "Elektrik", "Soru": """4. Dış cephe ışıkları çalışıyor mu?"""},
-            {"Bolum": "Elektrik", "Soru": """5. Jeneratör panelleri normal mi?"""},
-            
-            # --- MEKANİK ---
-            {"Bolum": "Mekanik", "Soru": """1. Önceki vardiyadan iş kaldı mı?"""},
-            {"Bolum": "Mekanik", "Soru": """2. Kazan Dairesi su kaçağı var mı?"""},
-            {"Bolum": "Mekanik", "Soru": """3. Su basınçları normal mi?"""},
-            {"Bolum": "Mekanik", "Soru": """4. Klima santralleri çalışıyor mu?"""},
-            
-            # --- GENEL ---
-            {"Bolum": "Genel", "Soru": """1. Vardiya defteri okundu mu?"""},
-            {"Bolum": "Genel", "Soru": """2. Çevre kontrolü yapıldı mı?"""}
+            {"Bolum": "Elektrik", "Soru": "1. Asansörler normal çalışıyor mu?"},
+            {"Bolum": "Elektrik", "Soru": "2. Dış cephe ve bahçe aydınlatmaları yanıyor mu?"},
+            {"Bolum": "Mekanik", "Soru": "1. Kazan dairesi su basınçları normal mi?"},
+            {"Bolum": "Mekanik", "Soru": "2. Hidrofor ve pompalar çalışıyor mu?"},
+            {"Bolum": "Genel", "Soru": "1. Vardiya defteri okundu mu?"}
         ]
         df = pd.DataFrame(varsayilan_sorular)
         save_data(df, "sorular")
@@ -66,7 +55,7 @@ def get_questions(bolum_adi):
     return df[df["Bolum"] == bolum_adi]["Soru"].tolist()
 
 # -----------------------------------------------------------------------------
-# 3. DİNAMİK YAN MENÜ (GÜVENLİK AYARI BURADA)
+# 3. YAN MENÜ VE GÜVENLİK
 # -----------------------------------------------------------------------------
 if 'admin_logged_in' not in st.session_state:
     st.session_state['admin_logged_in'] = False
@@ -76,11 +65,12 @@ with st.sidebar:
     st.title("🏢 Tesis Yönetimi")
     st.markdown("---")
     
-    # KULLANICI TİPİNE GÖRE MENÜ BELİRLEME
+    # MENÜ SEÇENEKLERİ
     if st.session_state['admin_logged_in']:
-        # Yönetici Giriş Yapmışsa Her Şeyi Görür
+        # --- YÖNETİCİ MENÜSÜ ---
         menu_options = [
-            "📊 GÜNLÜK RAPOR (YÖNETİCİ)", 
+            "🏠 Ana Sayfa",
+            "📊 GÜNLÜK RAPOR", 
             "👥 Personel Yönetimi",
             "⚙️ Soru Düzenleme",
             "✅ Kontrol Listeleri", 
@@ -88,32 +78,58 @@ with st.sidebar:
             "🔄 Vardiya Defteri",
             "🚪 Çıkış Yap"
         ]
-        st.success("Yönetici Modu Açık")
+        st.success("Yönetici Modu")
     else:
-        # Personel Sadece İş Ekranlarını Görür
+        # --- PERSONEL MENÜSÜ ---
         menu_options = [
+            "🏠 Ana Sayfa",
             "✅ Kontrol Listeleri", 
             "🛠️ Arıza Takip", 
             "🔄 Vardiya Defteri",
             "🔐 Yönetici Girişi"
         ]
     
-    menu = st.radio("Menü Seçimi", menu_options)
+    menu = st.radio("Menü", menu_options)
     
     st.markdown("---")
-    secilen_tarih = st.date_input("İşlem Tarihi", date.today())
+    secilen_tarih = st.date_input("Tarih", date.today())
 
 # -----------------------------------------------------------------------------
-# 4. GİRİŞ / ÇIKIŞ İŞLEMLERİ
+# 4. MODÜL: ANA SAYFA (HERKES GÖRÜR)
 # -----------------------------------------------------------------------------
-if menu == "🔐 Yönetici Girişi":
-    st.header("🔐 Yönetici Girişi")
-    st.info("Raporları ve Personel Listesini görmek için giriş yapınız.")
+if menu == "🏠 Ana Sayfa":
+    st.header("👋 Hoşgeldiniz")
+    st.markdown(f"**Tarih:** {secilen_tarih.strftime('%d.%m.%Y')}")
+    st.divider()
     
+    # Bilgilendirme Kartları
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.info("✅ **Kontrol Listeleri**")
+        st.write("Günlük rutin kontrolleri (Elektrik, Mekanik) girmek için kullanılır.")
+    
+    with col2:
+        st.warning("🛠️ **Arıza Takip**")
+        st.write("Binada oluşan arızaları kaydetmek ve durumunu güncellemek içindir.")
+        
+    with col3:
+        st.success("🔄 **Vardiya Defteri**")
+        st.write("Vardiya değişimlerinde not bırakmak ve teslim yapmak içindir.")
+
+    st.divider()
+    if not st.session_state['admin_logged_in']:
+        st.caption("ℹ️ Yönetici paneline erişmek için sol menüden 'Yönetici Girişi' yapınız.")
+
+# -----------------------------------------------------------------------------
+# 5. MODÜL: YÖNETİCİ GİRİŞİ / ÇIKIŞI
+# -----------------------------------------------------------------------------
+elif menu == "🔐 Yönetici Girişi":
+    st.header("🔐 Yönetici Girişi")
     with st.form("login_form"):
         password = st.text_input("Şifre", type="password")
         if st.form_submit_button("Giriş Yap"):
-            if password == "1234":  # ŞİFRE BURADA
+            if password == "1234":
                 st.session_state['admin_logged_in'] = True
                 st.rerun()
             else:
@@ -124,75 +140,69 @@ elif menu == "🚪 Çıkış Yap":
     st.rerun()
 
 # -----------------------------------------------------------------------------
-# 5. MODÜL: GÜNLÜK RAPOR (SADECE YÖNETİCİ)
+# 6. MODÜL: GÜNLÜK RAPOR (SADECE YÖNETİCİ)
 # -----------------------------------------------------------------------------
-elif menu == "📊 GÜNLÜK RAPOR (YÖNETİCİ)":
-    st.header(f"📊 Günlük Operasyon Özeti ({secilen_tarih.strftime('%d.%m.%Y')})")
+elif menu == "📊 GÜNLÜK RAPOR":
+    st.header(f"📊 Özet Rapor ({secilen_tarih})")
     
-    # Verileri Çek
     df_c = load_data("checklist", ["Tarih", "Bolum", "Soru", "Durum", "Aciklama", "Kontrol_Eden"])
     df_a = load_data("ariza", ["Tarih", "Saat", "Bolum", "Lokasyon", "Ariza_Tanimi", "Sorumlu", "Durum"])
-    df_v = load_data("vardiya", ["Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Notlar", "Kritik"])
     
-    str_tarih = secilen_tarih.strftime("%Y-%m-%d")
-    gunluk_check = df_c[df_c["Tarih"] == str_tarih]
-    gunluk_ariza = df_a[df_a["Tarih"] == str_tarih]
-    gunluk_vardiya = df_v[df_v["Tarih"] == str_tarih]
+    str_t = secilen_tarih.strftime("%Y-%m-%d")
+    gunluk_c = df_c[df_c["Tarih"] == str_t]
+    gunluk_a = df_a[df_a["Tarih"] == str_t]
     
-    # METRİKLER
-    c1, c2, c3, c4 = st.columns(4)
-    el_ok = "✅ Tamam" if not gunluk_check[gunluk_check["Bolum"]=="Elektrik"].empty else "❌ Eksik"
-    mk_ok = "✅ Tamam" if not gunluk_check[gunluk_check["Bolum"]=="Mekanik"].empty else "❌ Eksik"
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Toplam Kontrol", len(gunluk_c))
+    c2.metric("Toplam Arıza", len(gunluk_a))
+    sorunlu = gunluk_c[gunluk_c["Durum"] == "Sorunlu"]
+    c3.metric("Sorunlu Madde", len(sorunlu))
     
-    c1.metric("Elektrik", el_ok)
-    c2.metric("Mekanik", mk_ok)
-    c3.metric("Arıza", f"{len(gunluk_ariza)} Adet")
-    c4.metric("Vardiya", f"{len(gunluk_vardiya)} Kayıt")
+    st.subheader("🛠️ Arızalar")
+    st.dataframe(gunluk_a, use_container_width=True)
     
-    st.divider()
-    
-    # Arızalar
-    st.subheader("🛠️ Günün Arızaları")
-    if not gunluk_ariza.empty:
-        st.dataframe(gunluk_ariza, use_container_width=True, hide_index=True)
-    else:
-        st.info("Arıza kaydı yok.")
-        
-    # Sorunlu Kontroller
-    st.subheader("⚠️ Kontrol Listesi Hataları")
-    errors = gunluk_check[gunluk_check["Durum"] == "Sorunlu"]
-    if not errors.empty:
-        st.error(f"{len(errors)} adet sorunlu madde var!")
-        st.dataframe(errors[["Bolum", "Soru", "Aciklama", "Kontrol_Eden"]], use_container_width=True)
-    else:
-        st.success("Tüm kontroller temiz.")
+    st.subheader("⚠️ Sorunlu Kontroller")
+    st.dataframe(sorunlu, use_container_width=True)
 
 # -----------------------------------------------------------------------------
-# 6. MODÜL: PERSONEL YÖNETİMİ (SADECE YÖNETİCİ)
+# 7. MODÜL: PERSONEL YÖNETİMİ (SADECE YÖNETİCİ)
 # -----------------------------------------------------------------------------
 elif menu == "👥 Personel Yönetimi":
-    st.header("👥 Personel Listesi Düzenleme")
-    
-    df_per = load_data("personel", ["Isim", "Gorev"])
+    st.header("👥 Personel Listesi")
+    df_p = load_data("personel", ["Isim", "Gorev"])
     
     c1, c2 = st.columns(2)
     with c1:
-        with st.form("add_per"):
-            ad = st.text_input("Ad Soyad")
-            grv = st.text_input("Görevi")
-            if st.form_submit_button("Ekle") and ad:
-                df_per = pd.concat([df_per, pd.DataFrame([{"Isim": ad, "Gorev": grv}])], ignore_index=True)
-                save_data(df_per, "personel")
-                st.success("Eklendi")
+        with st.form("add_p"):
+            nm = st.text_input("Ad Soyad")
+            gr = st.text_input("Görevi")
+            if st.form_submit_button("Ekle") and nm:
+                df_p = pd.concat([df_p, pd.DataFrame([{"Isim": nm, "Gorev": gr}])], ignore_index=True)
+                save_data(df_p, "personel")
                 st.rerun()
     with c2:
-        if not df_per.empty:
-            st.dataframe(df_per, use_container_width=True)
-            sil = st.selectbox("Silinecek Personel", df_per["Isim"].unique())
+        st.dataframe(df_p, use_container_width=True)
+        if not df_p.empty:
+            dl = st.selectbox("Sil", df_p["Isim"].unique())
             if st.button("Sil"):
-                df_per = df_per[df_per["Isim"] != sil]
-                save_data(df_per, "personel")
+                df_p = df_p[df_p["Isim"] != dl]
+                save_data(df_p, "personel")
                 st.rerun()
 
 # -----------------------------------------------------------------------------
-#
+# 8. MODÜL: SORU DÜZENLEME (SADECE YÖNETİCİ)
+# -----------------------------------------------------------------------------
+elif menu == "⚙️ Soru Düzenleme":
+    st.header("⚙️ Soru Havuzu")
+    df_s = load_data("sorular", ["Bolum", "Soru"])
+    
+    with st.form("add_q"):
+        b = st.selectbox("Bölüm", ["Elektrik", "Mekanik", "Genel"])
+        q = st.text_input("Soru")
+        if st.form_submit_button("Ekle") and q:
+            df_s = pd.concat([df_s, pd.DataFrame([{"Bolum": b, "Soru": q}])], ignore_index=True)
+            save_data(df_s, "sorular")
+            st.rerun()
+            
+    st.dataframe(df_s, use_container_width=True)
+    if not df_s.empty:
