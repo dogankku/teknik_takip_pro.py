@@ -36,102 +36,84 @@ def save_data(df, key):
     df.to_csv(FILES[key], index=False)
 
 # -----------------------------------------------------------------------------
-# 3. SORU GRUPLARI (DÜZELTİLMİŞ LİSTE)
+# 3. SORU GRUPLARI (MANTIKSAL DAĞITIM YAPILDI)
 # -----------------------------------------------------------------------------
-# Mekanik içindeki "Pano" soruları Elektrik bölümüne taşındı.
-
 SORU_GRUPLARI = {
     "Elektrik": {
-        "Genel Aydınlatma & Sistemler": [
-            """1. ASANSÖRLER NORMAL ÇALIŞIYOR MU? ARIZA/ŞİKAYET VAR MI?""",
-            """2. SOKAK VE BAHÇE AYDINLATMALARI YANIYOR MU?""",
-            """3. BİNA DIŞ CEPHE KAYAR IŞIKLAR VE YAZILAR ÇALIŞIYOR MU?""",
-            """4. TV VE UPS ODASI KLİMALARI ÇALIŞIYOR MU?"""
+        "1. Vardiya Başlangıç & Genel": [
+            """1. Vardiya defteri incelendi mi?""",
+            """2. Bir önceki vardiyadan kalan işler tamamlandı mı?""",
+            """3. Vardiya boyunca olağandışı bir elektrik arızası yaşandı mı?"""
         ],
-        "Jeneratör & Trafo": [
-            """5. JENERATÖR KUMANDA PANELLERİ NORMAL KONUMDA MI?""",
-            """6. JENERATÖR MAZOT TANKI SEVİYELERİ VE KONTROLLERİ NORMAL Mİ?""",
-            """7. TRAFO, JENERATÖR VE DAĞITIM ODALARI TEMİZ Mİ?""",
-            """8. RESTORAN JENERATÖRÜ KUMANDA PANELİ NORMAL Mİ?"""
+        "2. Çevre & Dış Aydınlatma": [
+            """4. Sokak ve bahçe aydınlatmaları yanıyor mu?""",
+            """5. Bina dış cephe kayar ışıklar ve Anthill yazıları çalışıyor mu?""",
+            """6. Cam üstü ledler (taç ışıkları) yanıyor mu?""",
+            """7. Çevre aydınlatma otomasyon zaman saatleri normal mi?"""
         ],
-        "Teknik Odalar Pano Kontrolleri (Mekanik Odalar)": [
-            """9. A Blok Kazan Dairesi: Elektrik panolarında arıza ışığı var mı?""",
-            """10. A Blok 25. Kat: Elektrik panolarında arıza ışığı var mı?""",
-            """11. A Blok 1. Bodrum: Elektrik panolarında arıza ışığı var mı?""",
-            """12. Sosyal Tesis: Elektrik panolarında arıza ışığı var mı?""",
-            """13. B Blok 1. Bodrum: Elektrik panolarında arıza ışığı var mı?""",
-            """14. Zemin Kat Restoran: Elektrik panolarında arıza ışığı var mı?""",
-            """15. B Blok 25. Kat: Elektrik panolarında arıza ışığı var mı?""",
-            """16. B Blok Kazan Dairesi: Elektrik panolarında arıza ışığı var mı?""",
-            """17. 5. Bodrum: Pompaların panolarında arıza ışığı var mı?""",
-            """18. Otomasyon ekranında çalışmayan (kırmızı) ekipman var mı?"""
+        "3. Teknik Odalar Pano Kontrolleri (A Blok)": [
+            """8. A Blok Kazan Dairesi: Elektrik panolarında arıza ışığı/sigorta atığı var mı?""",
+            """9. A Blok 25. Kat: Elektrik panolarında arıza ışığı var mı?""",
+            """10. A Blok 1. Bodrum: Elektrik panolarında arıza ışığı var mı?""",
+            """11. A Blok Asansör Makine Dairesi: Panolar ve klimalar enerjili mi?"""
+        ],
+        "4. Teknik Odalar Pano Kontrolleri (B Blok)": [
+            """12. B Blok Kazan Dairesi: Elektrik panolarında arıza ışığı var mı?""",
+            """13. B Blok 25. Kat: Elektrik panolarında arıza ışığı var mı?""",
+            """14. B Blok 1. Bodrum: Elektrik panolarında arıza ışığı var mı?""",
+            """15. B Blok Asansör Makine Dairesi: Panolar ve klimalar enerjili mi?"""
+        ],
+        "5. Ortak Alan & Sosyal Tesis Panoları": [
+            """16. Zemin Kat Restoran: Elektrik panolarında arıza ışığı var mı?""",
+            """17. Sosyal Tesis: Elektrik panolarında arıza ışığı var mı?""",
+            """18. 5. Bodrum Pompalar: Panolarda arıza ışığı var mı?""",
+            """19. 5. Bodrum Pompalar: Şalterler otomatik konumda mı?"""
+        ],
+        "6. Jeneratör & Zayıf Akım Sistemleri": [
+            """20. Jeneratör kumanda panelleri 'Otomatik' konumda mı?""",
+            """21. Jeneratör ön ısıtıcıları çalışıyor mu?""",
+            """22. Ana dağıtım ve kompanzasyon panolarında arıza alarmı var mı?""",
+            """23. Asansör içi müzik yayın sistemi çalışıyor mu?""",
+            """24. Otomasyon bilgisayarında 'Kırmızı' (Arıza) veren cihaz var mı?"""
         ]
     },
     "Mekanik": {
-        "Genel Kontroller": [
-            """1. Bir önceki vardiyadan kalan iş var mı?""",
-            """2. Bir önceki vardiyadan kalan işler yapıldı mı?"""
+        "1. Vardiya Başlangıç & Genel": [
+            """1. Vardiya defteri incelendi mi?""",
+            """2. Bir önceki vardiyadan kalan işler tamamlandı mı?""",
+            """3. Vardiya boyunca su kesintisi veya mekanik arıza yaşandı mı?"""
         ],
-        "A Blok - Kazan Dairesi & Havalandırma": [
-            """3. Kazanlarda su kaçağı veya basınç sorunu var mı?""",
-            """4. Sirkülasyon pompaları normal çalışıyor mu?""",
-            """5. Taze hava ve eksoz santralleri çalışıyor mu?""",
-            """6. Mekan temiz mi?"""
+        "2. A Blok - Isıtma & Soğutma": [
+            """4. A Blok Kazan Dairesi: Su basınçları normal mi (Bar)?""",
+            """5. A Blok Kazan Dairesi: Su kaçağı var mı?""",
+            """6. A Blok 25. Kat: Sirkülasyon pompaları çalışıyor mu?""",
+            """7. A Blok 25. Kat: Taze hava ve egzoz santralleri çalışıyor mu?""",
+            """8. A Blok 1. Bodrum: Pompalar ve eşanjörler normal mi?"""
         ],
-        "A Blok - 25. Kat Teknik Oda": [
-            """7. Isıtma/Soğutma sirkülasyon pompaları çalışıyor mu?""",
-            """8. Su basınçları normal mi?""",
-            """9. Su deposu, hidrofor ve yangın depoları normal mi?""",
-            """10. Su kaçağı var mı?""",
-            """11. Havalandırma santralleri çalışıyor mu?"""
+        "3. B Blok - Isıtma & Soğutma": [
+            """9. B Blok Kazan Dairesi: Su basınçları normal mi?""",
+            """10. B Blok Kazan Dairesi: Su kaçağı var mı?""",
+            """11. B Blok 25. Kat: Sirkülasyon pompaları çalışıyor mu?""",
+            """12. B Blok 25. Kat: Taze hava ve egzoz santralleri çalışıyor mu?""",
+            """13. B Blok 1. Bodrum: Pompalar ve eşanjörler normal mi?"""
         ],
-        "A Blok - 1. Bodrum": [
-            """12. Isıtma/Soğutma pompaları çalışıyor mu?""",
-            """13. Su basınçları normal mi?""",
-            """14. Havalandırma santralleri çalışıyor mu?""",
-            """15. Mekan temiz mi?"""
+        "4. Su Basınçlandırma & Hidroforlar": [
+            """14. Kullanma suyu hidroforları basıncı normal mi?""",
+            """15. Su depoları seviyeleri yeterli mi?""",
+            """16. Arıtma sistemi (Yumuşatma) cihazları devrede mi?""",
+            """17. Hidrofor odalarında su kaçağı var mı?"""
         ],
-        "Su & Yangın Sistemleri": [
-            """16. Kullanma Suyu Hidroforları basıncı normal mi?""",
-            """17. Yangın Pompa Odası: Depolar dolu ve basınç normal mi?""",
-            """18. Arıtma sistemleri ve pompalar normal mi?""",
-            """19. Dairelerde su kaçağı var mı?"""
+        "5. Yangın Söndürme Sistemleri": [
+            """18. Yangın pompaları 'Otomatik' konumda bekliyor mu?""",
+            """19. Yangın hattı (Sprinkler/Dolap) basıncı normal mi?""",
+            """20. Yangın suyu deposu tam dolu mu?""",
+            """21. Jokey pompalar sık devreye giriyor mu? (Kaçak kontrolü)"""
         ],
-        "Sosyal Tesis & Mutfaklar": [
-            """20. Sosyal Tesis: Su kaçağı veya mekanik arıza var mı?""",
-            """21. Sosyal Tesis: Havalandırma çalışıyor mu?""",
-            """22. Mutfak ve Restoran: Su kaçağı var mı?""",
-            """23. Mutfak ve Restoran: Havalandırma çalışıyor mu?"""
-        ],
-        "B Blok - 1. Bodrum": [
-            """24. Isıtma/Soğutma pompaları çalışıyor mu?""",
-            """25. Havalandırma santralleri çalışıyor mu?""",
-            """26. Su kaçağı var mı?"""
-        ],
-        "B Blok - 25. Kat Teknik Oda": [
-            """27. Isıtma/Soğutma pompaları çalışıyor mu?""",
-            """28. Su deposu, hidrofor ve yangın depoları normal mi?""",
-            """29. Su kaçağı var mı?""",
-            """30. Havalandırma santralleri çalışıyor mu?"""
-        ],
-        "B Blok - Kazan Dairesi": [
-            """31. Su basınçları istenen barda mı?""",
-            """32. Su kaçağı var mı?""",
-            """33. Mekan temiz mi?"""
-        ],
-        "5. Bodrum Pompalar": [
-            """34. Pompalar otomatik konumda mı?""",
-            """35. Herhangi bir su kaçağı veya anormal ses var mı?"""
-        ]
-    },
-    "Engineering": {
-        "Genel Denetim": [
-            """1. Sokak, bahçe ve cephe aydınlatmaları kontrol edildi mi?""",
-            """2. Vardiya defteri ve önceki işler kontrol edildi mi?""",
-            """3. Tüm teknik hacimlerin (Kazan dairesi, 25. Kat vb.) genel temizliği uygun mu?""",
-            """4. Asansör müzikleri ve klimaları çalışıyor mu?""",
-            """5. Kayar ışıklar ve ledler yanıyor mu?""",
-            """6. Vardiya boyunca olağandışı bir durum yaşandı mı?"""
+        "6. Sosyal Tesis & Mutfaklar": [
+            """22. Havuz mekanik dairesi: Pompalar ve filtreler normal mi?""",
+            """23. Restoran/Mutfak: Giderlerde tıkanıklık veya koku var mı?""",
+            """24. Mutfak davlumbaz fanları çalışıyor mu?""",
+            """25. Sosyal tesis havalandırma santralleri (Klima) çalışıyor mu?"""
         ]
     }
 }
@@ -163,8 +145,8 @@ if menu == "🏠 Ana Sayfa":
     st.write(f"**Tarih:** {secilen_tarih.strftime('%d.%m.%Y')}")
     st.divider()
     c1, c2, c3 = st.columns(3)
-    c1.info("✅ **Kontrol Listeleri**\n\nLokasyon bazlı, hızlı giriş ekranı.")
-    c2.warning("🛠️ **Arıza Takip**\n\nArıza kayıt ve takip sistemi.")
+    c1.info("✅ **Kontrol Listeleri**\n\nElektrik ve Mekanik saha kontrolleri.")
+    c2.warning("🛠️ **Arıza Takip**\n\nArıza kayıt ve iş emri sistemi.")
     c3.success("🔄 **Vardiya Defteri**\n\nDijital vardiya teslim tutanağı.")
 
 # -----------------------------------------------------------------------------
