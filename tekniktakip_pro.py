@@ -22,7 +22,7 @@ FILES = {
 }
 
 # -----------------------------------------------------------------------------
-# 2. VERİTABANI VE SORU GRUPLARI (HATA ÖNLEYİCİ ÜÇLÜ TIRNAK)
+# 2. VERİTABANI YÖNETİMİ
 # -----------------------------------------------------------------------------
 def load_data(key, columns=None):
     if os.path.exists(FILES[key]):
@@ -35,125 +35,109 @@ def load_data(key, columns=None):
 def save_data(df, key):
     df.to_csv(FILES[key], index=False)
 
-# SORU GRUPLARI (Gruplandırılmış ve Kopyalamaya Dayanıklı)
+# -----------------------------------------------------------------------------
+# 3. SORU GRUPLARI (DÜZELTİLMİŞ LİSTE)
+# -----------------------------------------------------------------------------
+# Mekanik içindeki "Pano" soruları Elektrik bölümüne taşındı.
+
 SORU_GRUPLARI = {
     "Elektrik": {
-        "Asansörler & Dış Cephe": [
-            """1. ASANSÖRLER NORMAL ÇALIŞIYOR MU? ARIZA VEYA ŞİKAYET OLDU MU?""",
-            """2. A KULE-B KULE ASANSÖR MAK.DAİRESİ KLİMALAR ÇALIŞIYOR MU?""",
-            """3. SOKAK VE BAHÇE AYDINLATMALARI YANIYOR MU?""",
-            """4. BİNA DIŞ CEPHE KAYAR IŞIKLAR VE ANTHİLL YAZILARI NORMAL Mİ?"""
+        "Genel Aydınlatma & Sistemler": [
+            """1. ASANSÖRLER NORMAL ÇALIŞIYOR MU? ARIZA/ŞİKAYET VAR MI?""",
+            """2. SOKAK VE BAHÇE AYDINLATMALARI YANIYOR MU?""",
+            """3. BİNA DIŞ CEPHE KAYAR IŞIKLAR VE YAZILAR ÇALIŞIYOR MU?""",
+            """4. TV VE UPS ODASI KLİMALARI ÇALIŞIYOR MU?"""
         ],
-        "Klima & Havalandırma (Elektrik)": [
-            """5. TV ODASI KLİMASI ÇALIŞIYOR MU? MEKAN TEMİZ Mİ?""",
-            """6. UPS ODASI KLİMASI ÇALIŞIYOR MU? MEKAN TEMİZ Mİ?"""
+        "Jeneratör & Trafo": [
+            """5. JENERATÖR KUMANDA PANELLERİ NORMAL KONUMDA MI?""",
+            """6. JENERATÖR MAZOT TANKI SEVİYELERİ VE KONTROLLERİ NORMAL Mİ?""",
+            """7. TRAFO, JENERATÖR VE DAĞITIM ODALARI TEMİZ Mİ?""",
+            """8. RESTORAN JENERATÖRÜ KUMANDA PANELİ NORMAL Mİ?"""
         ],
-        "Jeneratörler & Trafolar": [
-            """7. A-B KULE JENERATÖR KUMANDA PANELLERİ NORMAL KONUMDA MI?""",
-            """8. JENERATÖRLER MAZOT TANKLARI KONTROLLERİ NORMAL Mİ?""",
-            """9. JENERATÖR ANA TANK MAZOT SEVİYESİ KAÇ SANTİM?""",
-            """10. TRAFO KORİDORLARI, JENERATÖR ODASI, DAĞITIM ODALARI TEMİZ Mİ?""",
-            """11. RESTORAN JENERATÖRÜ KUMANDA PANELİ NORMAL Mİ?"""
+        "Teknik Odalar Pano Kontrolleri (Mekanik Odalar)": [
+            """9. A Blok Kazan Dairesi: Elektrik panolarında arıza ışığı var mı?""",
+            """10. A Blok 25. Kat: Elektrik panolarında arıza ışığı var mı?""",
+            """11. A Blok 1. Bodrum: Elektrik panolarında arıza ışığı var mı?""",
+            """12. Sosyal Tesis: Elektrik panolarında arıza ışığı var mı?""",
+            """13. B Blok 1. Bodrum: Elektrik panolarında arıza ışığı var mı?""",
+            """14. Zemin Kat Restoran: Elektrik panolarında arıza ışığı var mı?""",
+            """15. B Blok 25. Kat: Elektrik panolarında arıza ışığı var mı?""",
+            """16. B Blok Kazan Dairesi: Elektrik panolarında arıza ışığı var mı?""",
+            """17. 5. Bodrum: Pompaların panolarında arıza ışığı var mı?""",
+            """18. Otomasyon ekranında çalışmayan (kırmızı) ekipman var mı?"""
         ]
     },
     "Mekanik": {
-        "Devir Teslim & Genel": [
+        "Genel Kontroller": [
             """1. Bir önceki vardiyadan kalan iş var mı?""",
             """2. Bir önceki vardiyadan kalan işler yapıldı mı?"""
         ],
-        "A Blok - Kazan Dairesi": [
-            """3. Kazanlarda/panolarda arıza ışığı, su kaçağı var mı?""",
-            """4. Su basınçları istenen barda mı?""",
-            """5. Mekan temiz mi?""",
-            """6. Taze hava ve eksoz santralleri çalışıyor mu?"""
+        "A Blok - Kazan Dairesi & Havalandırma": [
+            """3. Kazanlarda su kaçağı veya basınç sorunu var mı?""",
+            """4. Sirkülasyon pompaları normal çalışıyor mu?""",
+            """5. Taze hava ve eksoz santralleri çalışıyor mu?""",
+            """6. Mekan temiz mi?"""
         ],
         "A Blok - 25. Kat Teknik Oda": [
-            """7. Elektrik panolarında yanan arıza ışığı var mı?""",
-            """8. Isıtma sirkülasyon pompaları çalışıyor mu? Basınç normal mi?""",
-            """9. Soğutma sirkülasyon pompaları çalışıyor mu? Basınç normal mi?""",
+            """7. Isıtma/Soğutma sirkülasyon pompaları çalışıyor mu?""",
+            """8. Su basınçları normal mi?""",
+            """9. Su deposu, hidrofor ve yangın depoları normal mi?""",
             """10. Su kaçağı var mı?""",
-            """11. Su deposu ve hidroforlar normal mi?""",
-            """12. Yangın depoları dolu mu? Sistem basıncı normal mi?""",
-            """13. Mekan temiz mi?""",
-            """14. Taze hava ve eksoz santralleri çalışıyor mu?"""
+            """11. Havalandırma santralleri çalışıyor mu?"""
         ],
         "A Blok - 1. Bodrum": [
-            """15. Elektrik panolarında yanan arıza ışığı var mı?""",
-            """16. Isıtma sirkülasyon pompaları çalışıyor mu?""",
-            """17. Soğutma sirkülasyon pompaları çalışıyor mu?""",
-            """18. Mekan temiz mi?""",
-            """19. Taze hava ve eksoz santralleri çalışıyor mu?"""
+            """12. Isıtma/Soğutma pompaları çalışıyor mu?""",
+            """13. Su basınçları normal mi?""",
+            """14. Havalandırma santralleri çalışıyor mu?""",
+            """15. Mekan temiz mi?"""
         ],
-        "Su & Yangın Sistemleri (Ortak Alan)": [
-            """20. Kullanma Suyu ve Arıtma: Basınç normal mi?""",
-            """21. Kullanma Suyu ve Arıtma: Su kaçağı var mı?""",
-            """22. Yangın Pompa Odası: Depo dolu mu? Basınç normal mi?""",
-            """23. Hidrofor ve pompa daireleri temiz mi?"""
+        "Su & Yangın Sistemleri": [
+            """16. Kullanma Suyu Hidroforları basıncı normal mi?""",
+            """17. Yangın Pompa Odası: Depolar dolu ve basınç normal mi?""",
+            """18. Arıtma sistemleri ve pompalar normal mi?""",
+            """19. Dairelerde su kaçağı var mı?"""
         ],
         "Sosyal Tesis & Mutfaklar": [
-            """24. Sosyal Tesis: Pano arızası veya su kaçağı var mı?""",
-            """25. Sosyal Tesis: Mekan temiz mi?""",
-            """26. Sosyal tesis taze hava santralleri çalışıyor mu?""",
-            """32. 1. Bodrum Mutfak: Su kaçağı var mı?""",
-            """33. Zemin Kat Restoran: Pano arızası/su kaçağı var mı?""",
-            """34. Restoran/Mutfak mekanları temiz mi?""",
-            """35. Restoran/Mutfak havalandırmaları çalışıyor mu?"""
+            """20. Sosyal Tesis: Su kaçağı veya mekanik arıza var mı?""",
+            """21. Sosyal Tesis: Havalandırma çalışıyor mu?""",
+            """22. Mutfak ve Restoran: Su kaçağı var mı?""",
+            """23. Mutfak ve Restoran: Havalandırma çalışıyor mu?"""
         ],
         "B Blok - 1. Bodrum": [
-            """27. Elektrik panolarında arıza ışığı var mı?""",
-            """28. Isıtma sirkülasyon pompaları çalışıyor mu?""",
-            """29. Soğutma sirkülasyon pompaları çalışıyor mu?""",
-            """30. Mekan temiz mi?""",
-            """31. Taze hava ve eksoz santralleri çalışıyor mu?"""
+            """24. Isıtma/Soğutma pompaları çalışıyor mu?""",
+            """25. Havalandırma santralleri çalışıyor mu?""",
+            """26. Su kaçağı var mı?"""
         ],
         "B Blok - 25. Kat Teknik Oda": [
-            """36. Elektrik panolarında arıza ışığı var mı?""",
-            """37. Isıtma sirkülasyon pompaları çalışıyor mu?""",
-            """38. Soğutma sirkülasyon pompaları çalışıyor mu?""",
-            """39. Su kaçağı var mı?""",
-            """40. Su deposu ve hidroforlar normal mi?""",
-            """41. Yangın depoları dolu mu?""",
-            """42. Mekan temiz mi?""",
-            """43. Taze hava ve eksoz santralleri çalışıyor mu?"""
+            """27. Isıtma/Soğutma pompaları çalışıyor mu?""",
+            """28. Su deposu, hidrofor ve yangın depoları normal mi?""",
+            """29. Su kaçağı var mı?""",
+            """30. Havalandırma santralleri çalışıyor mu?"""
         ],
         "B Blok - Kazan Dairesi": [
-            """44. Arıza ışığı veya su kaçağı var mı?""",
-            """45. Su basınçları istenen barda mı?""",
-            """46. Mekan temiz mi?"""
+            """31. Su basınçları istenen barda mı?""",
+            """32. Su kaçağı var mı?""",
+            """33. Mekan temiz mi?"""
         ],
-        "5. Bodrum & Otomasyon": [
-            """47. Pompaların panolarında arıza ışığı var mı?""",
-            """48. Pompalar otomatik konumda mı?""",
-            """49. Otomasyon ekranında çalışmayan ekipman görünüyor mu?"""
+        "5. Bodrum Pompalar": [
+            """34. Pompalar otomatik konumda mı?""",
+            """35. Herhangi bir su kaçağı veya anormal ses var mı?"""
         ]
     },
     "Engineering": {
         "Genel Denetim": [
-            """1. Sokak ve bahçe aydınlatmaları yanıyor mu?""",
-            """2. Cam üstü led yanıyor mu?""",
-            """3. Vardiya defteri incelendi mi?""",
-            """4. Önceki vardiyadan iş kaldı mı?""",
-            """48. Vardiyada olumsuzluk yaşandı mı?""",
-            """49. Kayar ışıklar normal mi?""",
-            """50. Asansör müzikleri çalışıyor mu?"""
-        ],
-        "A Blok Denetimi": [
-            """6. A Blok Asansör Klimaları çalışıyor mu?""",
-            """7. A Blok Kazan Dairesi genel durumu normal mi?""",
-            """10. A Blok 25. Kat genel durumu normal mi?""",
-            """17. A Blok 1. Bodrum genel durumu normal mi?"""
-        ],
-        "B Blok Denetimi": [
-            """27. B Blok 1. Bodrum genel durumu normal mi?""",
-            """34. B Blok 25. Kat genel durumu normal mi?""",
-            """41. B Blok Kazan Dairesi genel durumu normal mi?""",
-            """44. B Blok Asansör Klimaları çalışıyor mu?"""
+            """1. Sokak, bahçe ve cephe aydınlatmaları kontrol edildi mi?""",
+            """2. Vardiya defteri ve önceki işler kontrol edildi mi?""",
+            """3. Tüm teknik hacimlerin (Kazan dairesi, 25. Kat vb.) genel temizliği uygun mu?""",
+            """4. Asansör müzikleri ve klimaları çalışıyor mu?""",
+            """5. Kayar ışıklar ve ledler yanıyor mu?""",
+            """6. Vardiya boyunca olağandışı bir durum yaşandı mı?"""
         ]
     }
 }
 
 # -----------------------------------------------------------------------------
-# 3. YAN MENÜ
+# 4. YAN MENÜ
 # -----------------------------------------------------------------------------
 if 'admin_logged_in' not in st.session_state:
     st.session_state['admin_logged_in'] = False
@@ -172,7 +156,7 @@ with st.sidebar:
     secilen_tarih = st.date_input("Tarih", date.today())
 
 # -----------------------------------------------------------------------------
-# 4. MODÜL: ANA SAYFA
+# 5. MODÜL: ANA SAYFA
 # -----------------------------------------------------------------------------
 if menu == "🏠 Ana Sayfa":
     st.header("👋 Hoşgeldiniz")
@@ -184,7 +168,7 @@ if menu == "🏠 Ana Sayfa":
     c3.success("🔄 **Vardiya Defteri**\n\nDijital vardiya teslim tutanağı.")
 
 # -----------------------------------------------------------------------------
-# 5. MODÜL: KONTROL LİSTELERİ (YENİ GRUPLU YAPI)
+# 6. MODÜL: KONTROL LİSTELERİ
 # -----------------------------------------------------------------------------
 elif menu == "✅ Kontrol Listeleri":
     st.header(f"✅ Günlük Kontroller ({secilen_tarih})")
@@ -193,25 +177,21 @@ elif menu == "✅ Kontrol Listeleri":
     df_pers = load_data("personel", ["Isim"])
     personel_listesi = df_pers["Isim"].tolist() if not df_pers.empty else ["Personel Yok"]
 
-    # Sekmeler
     tabs = st.tabs(list(SORU_GRUPLARI.keys()))
 
     for i, bolum in enumerate(SORU_GRUPLARI.keys()):
         with tabs[i]:
             st.subheader(f"📋 {bolum} Kontrol Formu")
             
-            # Personel Seçimi
-            col_p1, col_p2 = st.columns([1,3])
-            with col_p1:
+            c_p1, c_p2 = st.columns([1,3])
+            with c_p1:
                 kontrolcu = st.selectbox(f"Kontrol Eden ({bolum})", personel_listesi, key=f"user_{bolum}")
             
-            # --- GRUPLARI DÖNGÜYE AL ---
             bolum_sorulari = SORU_GRUPLARI[bolum]
             
             for alt_grup, sorular in bolum_sorulari.items():
                 with st.expander(f"📍 {alt_grup} ({len(sorular)} Soru)", expanded=False):
                     
-                    # Kayıt Kontrolü
                     tarih_str = str(secilen_tarih)
                     try:
                         kayitli_grup = df_check[
@@ -220,21 +200,20 @@ elif menu == "✅ Kontrol Listeleri":
                             (df_check["Alt_Grup"] == alt_grup)
                         ]
                     except KeyError:
-                        kayitli_grup = pd.DataFrame() # Eski veri formatı hatasını önle
+                        kayitli_grup = pd.DataFrame()
 
                     if not kayitli_grup.empty:
-                        st.info("✅ Bu bölüm tamamlanmış.")
+                        st.success("✅ Tamamlandı")
                         st.dataframe(kayitli_grup[["Soru", "Durum", "Aciklama"]], use_container_width=True)
                     else:
                         with st.form(f"form_{bolum}_{alt_grup}"):
                             st.caption("💡 İpucu: Sorun yoksa açıklama yazmadan geçebilirsiniz.")
-                            
                             cevaplar = []
                             for idx, soru in enumerate(sorular):
                                 c1, c2, c3 = st.columns([6, 2, 3])
                                 c1.write(soru)
                                 durum = c2.radio("D", ["Tamam", "Sorunlu"], key=f"rd_{bolum}_{alt_grup}_{idx}", horizontal=True, label_visibility="collapsed")
-                                not_txt = c3.text_input("Not", key=f"nt_{bolum}_{alt_grup}_{idx}", placeholder="Varsa not...")
+                                not_txt = c3.text_input("Not", key=f"nt_{bolum}_{alt_grup}_{idx}")
                                 
                                 cevaplar.append({
                                     "Tarih": tarih_str,
@@ -251,11 +230,10 @@ elif menu == "✅ Kontrol Listeleri":
                                 yeni_df = pd.DataFrame(cevaplar)
                                 df_check = pd.concat([df_check, yeni_df], ignore_index=True)
                                 save_data(df_check, "checklist")
-                                st.success(f"{alt_grup} kaydedildi!")
                                 st.rerun()
 
 # -----------------------------------------------------------------------------
-# 6. MODÜL: YÖNETİCİ GİRİŞİ / ÇIKIŞI
+# 7. MODÜL: YÖNETİCİ GİRİŞİ / ÇIKIŞI
 # -----------------------------------------------------------------------------
 elif menu == "🔐 Yönetici Girişi":
     st.header("🔐 Yönetici Girişi")
@@ -271,7 +249,7 @@ elif menu == "🚪 Çıkış":
     st.rerun()
 
 # -----------------------------------------------------------------------------
-# 7. MODÜL: GÜNLÜK RAPOR
+# 8. MODÜL: GÜNLÜK RAPOR
 # -----------------------------------------------------------------------------
 elif menu == "📊 GÜNLÜK RAPOR":
     st.header(f"📊 Rapor ({secilen_tarih})")
@@ -283,22 +261,20 @@ elif menu == "📊 GÜNLÜK RAPOR":
     ga = df_a[df_a["Tarih"] == t]
     
     c1, c2, c3 = st.columns(3)
-    c1.metric("Kontrol Edilen Madde", len(gc))
-    c2.metric("Arıza Sayısı", len(ga))
-    sorunlu_list = gc[gc["Durum"]=="Sorunlu"] if not gc.empty else pd.DataFrame()
-    c3.metric("Sorunlu Madde", len(sorunlu_list))
+    c1.metric("Kontrol", len(gc))
+    c2.metric("Arıza", len(ga))
+    sorunlu = gc[gc["Durum"]=="Sorunlu"] if not gc.empty else pd.DataFrame()
+    c3.metric("Sorunlu", len(sorunlu))
     
-    st.subheader("⚠️ Sorunlu Kontroller")
-    if not sorunlu_list.empty:
-        st.dataframe(sorunlu_list, use_container_width=True)
-    else:
-        st.info("Sorun yok.")
+    st.subheader("⚠️ Sorunlar")
+    if not sorunlu.empty: st.dataframe(sorunlu, use_container_width=True)
+    else: st.info("Sorun yok.")
     
     st.subheader("🛠️ Arızalar")
     st.dataframe(ga, use_container_width=True)
 
 # -----------------------------------------------------------------------------
-# 8. DİĞER MODÜLLER (ARIZA, VARDİYA, PERSONEL)
+# 9. DİĞER MODÜLLER
 # -----------------------------------------------------------------------------
 elif menu == "🛠️ Arıza Takip":
     st.header("🛠️ Arıza Kayıtları")
