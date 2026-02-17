@@ -40,7 +40,6 @@ def save_data(df, key):
 def initialize_system():
     """Sistem ilk açıldığında varsayılan soruları yükler."""
     if not os.path.exists(FILES["sorular"]):
-        # Kopyalama hatasını önlemek için üç tırnak kullanıldı
         varsayilan_sorular = [
             # --- ELEKTRİK ---
             {"Bolum": "Elektrik", "Soru": """1. Asansörler normal çalışıyor mu? Arıza/şikayet var mı?"""},
@@ -83,10 +82,12 @@ def get_questions(bolum_adi):
 # 3. YAN MENÜ (NAVİGASYON)
 # -----------------------------------------------------------------------------
 with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/906/906319.png", width=80)
     st.title("🏢 Tesis Yönetimi")
     st.markdown("---")
     
     menu = st.radio("Menü Seçimi", [
+        "📊 GÜNLÜK RAPOR (ÖZET)",  # <-- YENİ EKLENDİ
         "✅ Kontrol Listeleri", 
         "🛠️ Arıza Takip", 
         "🔄 Vardiya Defteri", 
@@ -96,71 +97,73 @@ with st.sidebar:
     
     st.markdown("---")
     secilen_tarih = st.date_input("İşlem Tarihi", date.today())
-    st.caption("v4.5 Stable")
+    st.caption("Sistem v5.0")
 
 # -----------------------------------------------------------------------------
-# 4. MODÜL: YÖNETİCİ PANELİ (ŞİFRE: 1234)
+# 4. MODÜL: GÜNLÜK RAPOR (ÖZET EKRANI) - YENİ
 # -----------------------------------------------------------------------------
-if menu == "⚙️ Yönetici Paneli":
-    st.header("⚙️ Sistem Ayarları")
+if menu == "📊 GÜNLÜK RAPOR (ÖZET)":
+    st.header(f"📊 Günlük Operasyon Özeti ({secilen_tarih.strftime('%d.%m.%Y')})")
+    st.markdown("Bu ekranda seçili tarihe ait tüm olayları tek bakışta görebilirsiniz.")
     
-    if 'admin_logged_in' not in st.session_state:
-        st.session_state['admin_logged_in'] = False
-
-    if not st.session_state['admin_logged_in']:
-        with st.form("admin_login"):
-            password = st.text_input("Yönetici Şifresi", type="password")
-            if st.form_submit_button("Giriş"):
-                if password == "1234":
-                    st.session_state['admin_logged_in'] = True
-                    st.success("Giriş Başarılı!")
-                    st.rerun()
-                else:
-                    st.error("Hatalı Şifre!")
+    # Verileri Çek
+    df_c = load_data("checklist", ["Tarih", "Bolum", "Soru", "Durum", "Aciklama", "Kontrol_Eden"])
+    df_a = load_data("ariza", ["Tarih", "Saat", "Bolum", "Lokasyon", "Ariza_Tanimi", "Sorumlu", "Durum"])
+    df_v = load_data("vardiya", ["Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Notlar", "Kritik"])
+    
+    # Tarihe Göre Filtrele
+    str_tarih = secilen_tarih.strftime("%Y-%m-%d")
+    gunluk_check = df_c[df_c["Tarih"] == str_tarih]
+    gunluk_ariza = df_a[df_a["Tarih"] == str_tarih]
+    gunluk_vardiya = df_v[df_v["Tarih"] == str_tarih]
+    
+    # --- ÜST METRİKLER ---
+    col1, col2, col3, col4 = st.columns(4)
+    
+    # Kontrol Durumları
+    elek_durum = "✅ Tamam" if not gunluk_check[gunluk_check["Bolum"]=="Elektrik"].empty else "❌ Eksik"
+    mek_durum = "✅ Tamam" if not gunluk_check[gunluk_check["Bolum"]=="Mekanik"].empty else "❌ Eksik"
+    
+    col1.metric("Elektrik Kontrol", elek_durum)
+    col2.metric("Mekanik Kontrol", mek_durum)
+    col3.metric("Bugünkü Arıza", f"{len(gunluk_ariza)} Adet")
+    col4.metric("Vardiya Kaydı", f"{len(gunluk_vardiya)} Adet")
+    
+    st.divider()
+    
+    # --- DETAYLI GÖRÜNÜMLER ---
+    
+    # 1. ARIZALAR
+    st.subheader("🛠️ Bugün Girilen Arızalar")
+    if not gunluk_ariza.empty:
+        st.dataframe(gunluk_ariza[["Saat", "Bolum", "Lokasyon", "Ariza_Tanimi", "Sorumlu", "Durum"]], use_container_width=True, hide_index=True)
     else:
-        if st.button("Çıkış Yap"):
-            st.session_state['admin_logged_in'] = False
-            st.rerun()
-
-        st.divider()
-        st.subheader("📝 Kontrol Listesi Düzenleme")
+        st.info("Bugün kayıtlı bir arıza yok.")
         
-        col1, col2 = st.columns([1, 2])
-        df_sorular = load_data("sorular", ["Bolum", "Soru"])
+    # 2. VARDİYA NOTLARI
+    st.subheader("🔄 Vardiya Notları")
+    if not gunluk_vardiya.empty:
+        for i, row in gunluk_vardiya.iterrows():
+            with st.expander(f"{row['Vardiya']} - {row['Teslim_Eden']} ➡️ {row['Teslim_Alan']}", expanded=True):
+                st.write(f"**Özet:** {row['Notlar']}")
+                if pd.notna(row['Kritik']) and row['Kritik']:
+                    st.error(f"⚠️ KRİTİK: {row['Kritik']}")
+    else:
+        st.info("Bugün vardiya defterine giriş yapılmamış.")
+        
+    # 3. SORUNLU KONTROL MADDELERİ (Sadece sorunluları göster)
+    st.subheader("⚠️ Kontrol Listelerindeki Sorunlar")
+    sorunlu_check = gunluk_check[gunluk_check["Durum"] == "Sorunlu"]
+    
+    if not sorunlu_check.empty:
+        st.error(f"Dikkat! Kontrol listelerinde {len(sorunlu_check)} adet sorun tespit edilmiş:")
+        st.dataframe(sorunlu_check[["Bolum", "Soru", "Aciklama", "Kontrol_Eden"]], use_container_width=True, hide_index=True)
+    else:
+        if gunluk_check.empty:
+             st.warning("Henüz kontrol listesi doldurulmamış.")
+        else:
+             st.success("Tüm kontrol listeleri temiz, sorunlu madde yok.")
 
-        with col1:
-            with st.form("soru_ekle_form"):
-                st.write("**Yeni Soru Ekle**")
-                bolum = st.selectbox("Bölüm", ["Elektrik", "Mekanik", "Genel"])
-                soru = st.text_input("Soru Metni")
-                if st.form_submit_button("Listeye Ekle"):
-                    if soru:
-                        new_row = {"Bolum": bolum, "Soru": soru}
-                        df_sorular = pd.concat([df_sorular, pd.DataFrame([new_row])], ignore_index=True)
-                        save_data(df_sorular, "sorular")
-                        st.success("Soru Eklendi!")
-                        st.rerun()
-
-        with col2:
-            st.write("**Mevcut Sorular**")
-            tab_e, tab_m, tab_g = st.tabs(["Elektrik", "Mekanik", "Genel"])
-            
-            def list_q(bolum_filter):
-                subset = df_sorular[df_sorular["Bolum"] == bolum_filter]
-                if not subset.empty:
-                    for idx, row in subset.iterrows():
-                        c_text, c_del = st.columns([4, 1])
-                        c_text.text(f"• {row['Soru']}")
-                        if c_del.button("Sil", key=f"del_{idx}"):
-                            df_sorular.drop(idx, inplace=True)
-                            save_data(df_sorular, "sorular")
-                            st.rerun()
-                else:
-                    st.info("Bu bölümde soru yok.")
-
-            with tab_e: list_q("Elektrik")
-            with tab_m: list_q("Mekanik")
-            with tab_g: list_q("Genel")
 
 # -----------------------------------------------------------------------------
 # 5. MODÜL: KONTROL LİSTELERİ
@@ -242,8 +245,6 @@ elif menu == "🛠️ Arıza Takip":
             with c3: kisi = st.selectbox("Sorumlu", personel)
             
             detay = st.text_area("İş / Arıza Tanımı")
-            
-            # Hata oluşmaması için liste değişkene atandı
             durum_listesi = ["🛑 Açık", "⚠️ Devam Ediyor", "✅ Tamamlandı", "📦 Parça Bekliyor"]
             durum = st.selectbox("Durum", durum_listesi)
             
@@ -264,6 +265,7 @@ elif menu == "🛠️ Arıza Takip":
 
     st.divider()
     if not df_ariza.empty:
+        # Tüm kayıtları göster (tarihten bağımsız hepsi, ama sıralı)
         st.dataframe(df_ariza.sort_values(by="Tarih", ascending=False), use_container_width=True)
     else:
         st.info("Henüz kayıt bulunmamaktadır.")
@@ -337,3 +339,67 @@ elif menu == "👥 Personel":
                 df_per = df_per[df_per["Isim"] != to_del]
                 save_data(df_per, "personel")
                 st.rerun()
+
+# -----------------------------------------------------------------------------
+# 9. MODÜL: YÖNETİCİ PANELİ (ŞİFRE: 1234)
+# -----------------------------------------------------------------------------
+elif menu == "⚙️ Yönetici Paneli":
+    st.header("⚙️ Sistem Ayarları")
+    
+    if 'admin_logged_in' not in st.session_state:
+        st.session_state['admin_logged_in'] = False
+
+    if not st.session_state['admin_logged_in']:
+        with st.form("admin_login"):
+            password = st.text_input("Yönetici Şifresi", type="password")
+            if st.form_submit_button("Giriş"):
+                if password == "1234":
+                    st.session_state['admin_logged_in'] = True
+                    st.success("Giriş Başarılı!")
+                    st.rerun()
+                else:
+                    st.error("Hatalı Şifre!")
+    else:
+        if st.button("Çıkış Yap"):
+            st.session_state['admin_logged_in'] = False
+            st.rerun()
+
+        st.divider()
+        st.subheader("📝 Kontrol Listesi Düzenleme")
+        
+        col1, col2 = st.columns([1, 2])
+        df_sorular = load_data("sorular", ["Bolum", "Soru"])
+
+        with col1:
+            with st.form("soru_ekle_form"):
+                st.write("**Yeni Soru Ekle**")
+                bolum = st.selectbox("Bölüm", ["Elektrik", "Mekanik", "Genel"])
+                soru = st.text_input("Soru Metni")
+                if st.form_submit_button("Listeye Ekle"):
+                    if soru:
+                        new_row = {"Bolum": bolum, "Soru": soru}
+                        df_sorular = pd.concat([df_sorular, pd.DataFrame([new_row])], ignore_index=True)
+                        save_data(df_sorular, "sorular")
+                        st.success("Soru Eklendi!")
+                        st.rerun()
+
+        with col2:
+            st.write("**Mevcut Sorular**")
+            tab_e, tab_m, tab_g = st.tabs(["Elektrik", "Mekanik", "Genel"])
+            
+            def list_q(bolum_filter):
+                subset = df_sorular[df_sorular["Bolum"] == bolum_filter]
+                if not subset.empty:
+                    for idx, row in subset.iterrows():
+                        c_text, c_del = st.columns([4, 1])
+                        c_text.text(f"• {row['Soru']}")
+                        if c_del.button("Sil", key=f"del_{idx}"):
+                            df_sorular.drop(idx, inplace=True)
+                            save_data(df_sorular, "sorular")
+                            st.rerun()
+                else:
+                    st.info("Bu bölümde soru yok.")
+
+            with tab_e: list_q("Elektrik")
+            with tab_m: list_q("Mekanik")
+            with tab_g: list_q("Genel")
