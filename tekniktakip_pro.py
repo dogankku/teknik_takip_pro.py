@@ -4,11 +4,11 @@ from datetime import datetime, date
 import os
 
 # -----------------------------------------------------------------------------
-# 1. AYARLAR VE VERİTABANI YÖNETİMİ
+# 1. AYARLAR VE DOSYA YÖNETİMİ
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="24/7 Teknik Operasyon Merkezi", layout="wide", page_icon="🏭")
 
-# Dosya İsimleri
+# CSV Dosya İsimleri
 FILE_LOGS = "teknik_is_kayitlari.csv"
 FILE_SHIFTS = "vardiya_defteri.csv"
 FILE_USERS = "personel_listesi.csv"
@@ -25,28 +25,35 @@ def save_data(df, filename):
     df.to_csv(filename, index=False)
 
 # -----------------------------------------------------------------------------
-# 2. YAN MENÜ VE NAVİGASYON
+# 2. YAN MENÜ (NAVİGASYON VE FİLTRE)
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/906/906319.png", width=100)
-    st.title("Operasyon Paneli")
+    st.title("🔧 Operasyon Paneli")
     
+    # Menü Seçimi
     menu = st.radio(
         "Modül Seçiniz:", 
         ["📋 Günlük İş Kayıtları", "🔄 Vardiya Defteri", "👥 Personel Yönetimi"]
     )
     
     st.markdown("---")
-    st.info("📅 Tarih: " + datetime.now().strftime("%d-%m-%Y"))
-    st.info("🕒 Saat: " + datetime.now().strftime("%H:%M"))
+    
+    # TARİH FİLTRESİ (Sadece Günlük İşler İçin Aktif)
+    secilen_tarih = date.today()
+    if menu == "📋 Günlük İş Kayıtları":
+        st.subheader("📅 Tarih Seçimi")
+        secilen_tarih = st.date_input("Hangi günü görüntülemek istiyorsunuz?", date.today())
+        st.info(f"Seçili Tarih: {secilen_tarih.strftime('%d.%m.%Y')}")
+
+    st.markdown("---")
+    st.caption("Sistem Saati: " + datetime.now().strftime("%H:%M"))
 
 # -----------------------------------------------------------------------------
-# 3. MODÜL: PERSONEL YÖNETİMİ (SORUMLU KİŞİLER)
+# 3. MODÜL: PERSONEL YÖNETİMİ
 # -----------------------------------------------------------------------------
 if menu == "👥 Personel Yönetimi":
     st.header("👥 Teknik Personel ve Sorumlular")
     
-    # Mevcut personeli yükle
     df_users = load_data(FILE_USERS, ["Isim_Soyisim", "Gorev", "Ekip"])
     
     col1, col2 = st.columns([1, 2])
@@ -64,57 +71,62 @@ if menu == "👥 Personel Yönetimi":
                 df_users = pd.concat([df_users, pd.DataFrame([new_user])], ignore_index=True)
                 save_data(df_users, FILE_USERS)
                 st.success(f"{name} sisteme eklendi.")
+                st.rerun()
 
     with col2:
         st.subheader("Mevcut Personel Listesi")
-        st.dataframe(df_users, use_container_width=True)
-        
-        # Personel Silme Opsiyonu
         if not df_users.empty:
-            del_user = st.selectbox("Silinecek Personeli Seç", df_users["Isim_Soyisim"].unique())
-            if st.button("Personeli Sil"):
-                df_users = df_users[df_users["Isim_Soyisim"] != del_user]
-                save_data(df_users, FILE_USERS)
-                st.rerun()
+            st.dataframe(df_users, use_container_width=True, hide_index=True)
+            
+            st.write("---")
+            col_del1, col_del2 = st.columns([3, 1])
+            with col_del1:
+                del_user = st.selectbox("Silinecek Personeli Seç", df_users["Isim_Soyisim"].unique())
+            with col_del2:
+                if st.button("Seçili Personeli Sil"):
+                    df_users = df_users[df_users["Isim_Soyisim"] != del_user]
+                    save_data(df_users, FILE_USERS)
+                    st.rerun()
+        else:
+            st.info("Henüz personel eklenmedi.")
 
 # -----------------------------------------------------------------------------
-# 4. MODÜL: GÜNLÜK İŞ KAYITLARI (3 LİSTE SİSTEMİ)
+# 4. MODÜL: GÜNLÜK İŞ KAYITLARI (GÜN GÜN TAKİP)
 # -----------------------------------------------------------------------------
 elif menu == "📋 Günlük İş Kayıtları":
-    st.header("📋 Teknik Kayıt Defteri (Log Book)")
+    st.header(f"📋 Teknik Kayıt Defteri ({secilen_tarih.strftime('%d.%m.%Y')})")
     
-    # Personel listesini çek (Dropdown için)
+    # Verileri Yükle
+    df_logs = load_data(FILE_LOGS, ["Tarih", "Saat", "Kategori", "Lokasyon", "Detay", "Sorumlu", "Durum"])
     users_df = load_data(FILE_USERS, ["Isim_Soyisim"])
     personel_listesi = users_df["Isim_Soyisim"].tolist() if not users_df.empty else ["Tanımsız"]
 
-    # Ana Veriyi Yükle
-    df_logs = load_data(FILE_LOGS, ["Tarih", "Saat", "Kategori", "Lokasyon", "Detay", "Sorumlu", "Durum"])
-
-    # --- YENİ KAYIT FORMU ---
-    with st.expander("➕ YENİ İŞ / ARIZA GİRİŞİ YAPMAK İÇİN TIKLAYIN", expanded=True):
+    # --- KAYIT EKLEME FORMU ---
+    with st.expander("➕ YENİ İŞ / ARIZA GİRİŞİ EKLEMEK İÇİN TIKLAYIN", expanded=False):
         with st.form("log_form", clear_on_submit=True):
             c1, c2, c3 = st.columns(3)
             with c1:
-                kategori = st.selectbox("İş Kategorisi (Liste Tipi)", 
+                kategori = st.selectbox("Liste Tipi", 
                                       ["Liste 1: Rutin Kontrol", "Liste 2: Arıza/Onarım", "Liste 3: Periyodik Bakım"])
             with c2:
-                lokasyon = st.text_input("Lokasyon / Ekipman (Örn: Kazan Dairesi)")
+                lokasyon = st.text_input("Lokasyon / Ekipman")
             with c3:
-                sorumlu = st.selectbox("İşi Yapan Teknisyen", personel_listesi)
+                sorumlu = st.selectbox("İşi Yapan", personel_listesi)
             
-            detay = st.text_area("Yapılan İşin Detayları / Arıza Tanımı")
+            detay = st.text_area("Yapılan İşin Detayları")
             
             c4, c5 = st.columns(2)
             with c4:
-                durum = st.selectbox("İşin Durumu", ["✅ Tamamlandı", "⚠️ Devam Ediyor", "🛑 Parça Bekliyor/Durdu", "👀 Gözlem Altında"])
+                durum = st.selectbox("Durum", ["✅ Tamamlandı", "⚠️ Devam Ediyor", "🛑 Parça Bekliyor", "👀 Gözlem Altında"])
             with c5:
-                is_time = st.time_input("İşlem Saati", datetime.now().time())
+                # Varsayılan olarak şu anki saati getirir
+                is_time = st.time_input("Saat", datetime.now().time())
             
             submit_log = st.form_submit_button("Kaydı Deftere İşle")
             
             if submit_log:
                 new_log = {
-                    "Tarih": datetime.now().strftime("%Y-%m-%d"),
+                    "Tarih": secilen_tarih.strftime("%Y-%m-%d"), # Yan menüde seçilen tarihe kaydeder
                     "Saat": is_time.strftime("%H:%M"),
                     "Kategori": kategori,
                     "Lokasyon": lokasyon,
@@ -125,39 +137,34 @@ elif menu == "📋 Günlük İş Kayıtları":
                 df_logs = pd.concat([df_logs, pd.DataFrame([new_log])], ignore_index=True)
                 save_data(df_logs, FILE_LOGS)
                 st.toast("Kayıt Başarıyla Eklendi!", icon="✅")
+                st.rerun()
 
-    # --- LİSTE GÖRÜNÜMLERİ ---
+    # --- LİSTELEME VE FİLTRELEME ---
+    # Sadece seçilen tarihe ait kayıtları getir
+    gunluk_veriler = df_logs[df_logs["Tarih"] == secilen_tarih.strftime("%Y-%m-%d")]
+    
     st.divider()
     tab1, tab2, tab3 = st.tabs(["📝 Liste 1 (Rutin)", "🔧 Liste 2 (Arıza)", "⚙️ Liste 3 (Bakım)"])
     
-    def show_table(category_name):
-        # Filtreleme
-        filtered_df = df_logs[df_logs["Kategori"] == category_name].sort_values(by=["Tarih", "Saat"], ascending=False)
-        st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+    def show_table(df, category_name):
+        filtered = df[df["Kategori"] == category_name]
+        if not filtered.empty:
+            st.dataframe(filtered, use_container_width=True, hide_index=True)
+        else:
+            st.info(f"Bu tarihte '{category_name}' kategorisinde kayıt yok.")
 
-    with tab1:
-        st.caption("Günlük Rutin Kontrol Listesi")
-        show_table("Liste 1: Rutin Kontrol")
-        
-    with tab2:
-        st.caption("Arıza ve Onarım Müdahaleleri")
-        show_table("Liste 2: Arıza/Onarım")
-        
-    with tab3:
-        st.caption("Planlı Periyodik Bakımlar")
-        show_table("Liste 3: Periyodik Bakım")
+    with tab1: show_table(gunluk_veriler, "Liste 1: Rutin Kontrol")
+    with tab2: show_table(gunluk_veriler, "Liste 2: Arıza/Onarım")
+    with tab3: show_table(gunluk_veriler, "Liste 3: Periyodik Bakım")
 
 # -----------------------------------------------------------------------------
-# 5. MODÜL: VARDİYA DEFTERİ (24 SAAT OPERASYON)
+# 5. MODÜL: VARDİYA DEFTERİ
 # -----------------------------------------------------------------------------
 elif menu == "🔄 Vardiya Defteri":
     st.header("🔄 Vardiya Teslim Tutanakları")
-    st.markdown("*Bu bölüm vardiya değişimlerinde ekiplerin birbirine bilgi aktarması içindir.*")
-
-    # Personel listesini çek
+    
     users_df = load_data(FILE_USERS, ["Isim_Soyisim"])
     personel_listesi = users_df["Isim_Soyisim"].tolist() if not users_df.empty else ["Tanımsız"]
-    
     df_shifts = load_data(FILE_SHIFTS, ["Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Ozet_Notlar", "Kritik_Notlar"])
 
     col1, col2 = st.columns([1, 1])
@@ -165,19 +172,22 @@ elif menu == "🔄 Vardiya Defteri":
     with col1:
         st.subheader("✍️ Vardiya Teslim Et")
         with st.form("shift_form", clear_on_submit=True):
+            # Bugünün tarihi otomatik gelir
+            vardiya_tarihi = st.date_input("Vardiya Tarihi", date.today())
             vardiya_saati = st.selectbox("Vardiya Aralığı", ["08:00 - 16:00", "16:00 - 00:00", "00:00 - 08:00"])
-            teslim_eden = st.selectbox("Teslim Eden Amiri", personel_listesi, key="te")
-            teslim_alan = st.selectbox("Teslim Alan Amiri", personel_listesi, key="ta")
             
-            ozet = st.text_area("Vardiya Özeti (Yapılan genel işler)")
-            kritik = st.text_area("❗ KRİTİK NOTLAR / TAKİP EDİLMESİ GEREKENLER", 
-                                  help="Sonraki vardiyanın mutlaka bilmesi gerekenler.")
+            c_a, c_b = st.columns(2)
+            with c_a: teslim_eden = st.selectbox("Teslim Eden", personel_listesi, key="te")
+            with c_b: teslim_alan = st.selectbox("Teslim Alan", personel_listesi, key="ta")
             
-            shift_submit = st.form_submit_button("Vardiyayı Kapat ve Teslim Et")
+            ozet = st.text_area("Vardiya Özeti")
+            kritik = st.text_area("❗ KRİTİK / ACİL NOTLAR", help="Bir sonraki vardiyanın dikkat etmesi gerekenler.")
+            
+            shift_submit = st.form_submit_button("Vardiyayı Kapat")
             
             if shift_submit:
                 new_shift = {
-                    "Tarih": datetime.now().strftime("%Y-%m-%d"),
+                    "Tarih": vardiya_tarihi.strftime("%Y-%m-%d"),
                     "Vardiya": vardiya_saati,
                     "Teslim_Eden": teslim_eden,
                     "Teslim_Alan": teslim_alan,
@@ -186,22 +196,22 @@ elif menu == "🔄 Vardiya Defteri":
                 }
                 df_shifts = pd.concat([df_shifts, pd.DataFrame([new_shift])], ignore_index=True)
                 save_data(df_shifts, FILE_SHIFTS)
-                st.success("Vardiya kaydı başarıyla oluşturuldu.")
+                st.success("Vardiya kaydedildi.")
+                st.rerun()
 
     with col2:
-        st.subheader("📖 Geçmiş Vardiya Kayıtları")
+        st.subheader("📖 Geçmiş Vardiya Notları")
         if not df_shifts.empty:
-            # Son kayıtları en üstte göster
+            # En yeniden en eskiye sırala
             df_display = df_shifts.sort_values(by="Tarih", ascending=False)
             
-            for index, row in df_display.head(5).iterrows():
+            for index, row in df_display.iterrows():
                 with st.chat_message("assistant"):
-                    st.write(f"**{row['Tarih']} | {row['Vardiya']}**")
-                    st.write(f"👤 **Teslim Eden:** {row['Teslim_Eden']} ➡️ **Alan:** {row['Teslim_Alan']}")
-                    st.info(f"📋 **Özet:** {row['Ozet_Notlar']}")
-                    if row['Kritik_Notlar']:
-                        st.error(f"❗ **KRİTİK:** {row['Kritik_Notlar']}")
+                    st.write(f"📅 **{row['Tarih']}** | 🕒 {row['Vardiya']}")
+                    st.caption(f"👤 {row['Teslim_Eden']} ➡️ {row['Teslim_Alan']}")
+                    st.write(f"📝 {row['Ozet_Notlar']}")
+                    if pd.notna(row['Kritik_Notlar']) and row['Kritik_Notlar']:
+                        st.error(f"⚠️ DİKKAT: {row['Kritik_Notlar']}")
                     st.divider()
         else:
-            st.info("Henüz vardiya kaydı bulunmamaktadır.")
-
+            st.info("Henüz vardiya kaydı yok.")
