@@ -18,7 +18,8 @@ from auth import current_user, current_role, has_access, is_logged_in, logout
 from modules import (login, ana_sayfa, checklist, ariza, ekipman, daire,
                      talep, bakim_plan, aidat, stok, sayac, rapor,
                      vardiya, personel, kullanici, ayarlar,
-                     lokasyon, sablon, tekrar)
+                     lokasyon, sablon, tekrar,
+                     aktivite_log, media_yonetim, maliyet)
 
 # ── Login kontrolü ────────────────────────────────────────────────────────────
 if not is_logged_in():
@@ -53,6 +54,11 @@ MENU_STRUCTURE = {
             ("⚡", "Sayaç & Gider",    "sayac",    sayac.render),
             ("📍", "Lokasyonlar",      "lokasyon", lokasyon.render),
         ]),
+        ("ANALİZ & DENETİM", [
+            ("💸", "Maliyet Paneli",   "maliyet",      maliyet.render),
+            ("⚡", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render),
+            ("🖼️", "Medya Yönetimi",   "media",        media_yonetim.render),
+        ]),
         ("YÖNETİM", [
             ("📝", "Şablonlar",     "sablon",    sablon.render),
             ("👥", "Personel",      "personel",  personel.render),
@@ -82,6 +88,11 @@ MENU_STRUCTURE = {
             ("📋", "Stok",             "stok",     stok.render),
             ("⚡", "Sayaç & Gider",    "sayac",    sayac.render),
             ("📍", "Lokasyonlar",      "lokasyon", lokasyon.render),
+        ]),
+        ("ANALİZ & DENETİM", [
+            ("💸", "Maliyet Paneli",   "maliyet",      maliyet.render),
+            ("⚡", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render),
+            ("🖼️", "Medya Yönetimi",   "media",        media_yonetim.render),
         ]),
         ("YÖNETİM", [
             ("📝", "Şablonlar",  "sablon",   sablon.render),

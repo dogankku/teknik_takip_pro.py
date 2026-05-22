@@ -68,7 +68,7 @@ YETKI = {
     "Admin":     "*",  # tüm modüller
     "Yonetici":  ["ana", "rapor", "checklist", "ariza", "ekipman", "daire", "talep",
                   "bakim", "aidat", "stok", "sayac", "vardiya", "personel", "ayarlar",
-                  "lokasyon", "sablon", "tekrar"],
+                  "lokasyon", "sablon", "tekrar", "maliyet", "aktivite_log", "media"],
     "Teknisyen": ["ana", "checklist", "ariza", "ekipman", "talep", "bakim", "stok",
                   "vardiya", "tekrar"],
     "Sakin":     ["ana", "sakin_talep", "sakin_aidat", "sakin_daire"],

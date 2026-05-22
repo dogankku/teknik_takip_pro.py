@@ -154,6 +154,16 @@ def _yonetim_dashboard(secilen_tarih: date):
         _gider_chart(df_g)
         _bakim_timeline(df_b, today)
 
+    # ── Tekrarlı görev vade uyarıları & checklist özeti ──────────────────────
+    col_tekrar, col_cl = st.columns(2)
+    with col_tekrar:
+        _tekrar_ozet(today)
+    with col_cl:
+        _checklist_ozet(secilen_tarih)
+
+    # ── Son aktivite akışı ─────────────────────────────────────────────────────
+    _aktivite_feed()
+
     # ── Uyarı paneli ──────────────────────────────────────────────────────────
     _uyari_paneli(df_b, today, df_s, df_t)
 
@@ -354,3 +364,133 @@ def _bu_ay_gider(df, t: date):
     df2["_d"] = pd.to_datetime(df2["Tarih"], errors="coerce")
     m = df2[df2["_d"].dt.strftime("%Y-%m") == t.strftime("%Y-%m")]
     return pd.to_numeric(m.get("Tutar", pd.Series()), errors="coerce").fillna(0).sum()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+def _tekrar_ozet(today: pd.Timestamp):
+    """Tekrarlı görev vade durumu özeti."""
+    st.markdown('<div class="chart-card"><div class="chart-card-title">🔁 TEKRARLı GÖREVLER</div>',
+                unsafe_allow_html=True)
+    df = load_data("tekrar")
+    if df.empty:
+        st.caption("Tekrarlı görev kaydı yok.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    if "Sonraki_Tarih" not in df.columns:
+        st.caption("Veri yok.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    df2 = df.copy()
+    df2["_st"] = pd.to_datetime(df2["Sonraki_Tarih"], errors="coerce")
+    aktif = df2[df2.get("Aktif", pd.Series(dtype=str)).astype(str).str.lower().isin(
+        ["evet", "true", "1"])] if "Aktif" in df2.columns else df2
+
+    gecikti  = aktif[aktif["_st"] < today]
+    bugun    = aktif[(aktif["_st"] >= today) & (aktif["_st"] < today + pd.Timedelta(days=1))]
+    bu_hafta = aktif[(aktif["_st"] >= today) & (aktif["_st"] <= today + pd.Timedelta(days=7))]
+
+    ca, cb, cc = st.columns(3)
+    ca.metric("Gecikmiş",  len(gecikti),  delta="⚠️" if len(gecikti) > 0 else "",
+              delta_color="inverse" if len(gecikti) > 0 else "normal")
+    cb.metric("Bugün",     len(bugun))
+    cc.metric("Bu Hafta",  len(bu_hafta))
+
+    if not gecikti.empty:
+        show = [c for c in ["Baslik", "Sorumlu", "Sonraki_Tarih"] if c in gecikti.columns]
+        st.dataframe(gecikti[show].head(5), use_container_width=True, hide_index=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _checklist_ozet(secilen_tarih: date):
+    """Bugünkü checklist puan özeti."""
+    st.markdown('<div class="chart-card"><div class="chart-card-title">✅ BUGÜNKÜ KONTROLLEr</div>',
+                unsafe_allow_html=True)
+    df = load_data("checklist")
+    if df.empty or "Tarih" not in df.columns:
+        st.caption("Kontrol kaydı yok.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    bugun_str = str(secilen_tarih)
+    bugun_df = df[df["Tarih"].astype(str).str.startswith(bugun_str)]
+
+    if bugun_df.empty:
+        st.caption(f"{bugun_str} için kontrol kaydı yok.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    toplam = len(bugun_df)
+    if "Puan" in bugun_df.columns:
+        tamam   = int(pd.to_numeric(bugun_df["Puan"], errors="coerce").fillna(0).eq(1).sum())
+        sorunlu = toplam - tamam
+        oran = tamam / toplam * 100 if toplam else 0
+    else:
+        tamam   = bugun_df[bugun_df.get("Sonuc", pd.Series(dtype=str)).astype(str) == "Tamam"].shape[0] if "Sonuc" in bugun_df.columns else 0
+        sorunlu = toplam - tamam
+        oran = tamam / toplam * 100 if toplam else 0
+
+    ca, cb, cc = st.columns(3)
+    ca.metric("Toplam",  toplam)
+    cb.metric("Tamam",   tamam)
+    cc.metric("Sorunlu", sorunlu,
+              delta="⚠️ İncele" if sorunlu > 0 else "",
+              delta_color="inverse" if sorunlu > 0 else "normal")
+
+    st.progress(min(int(oran), 100), text=f"Başarı: %{oran:.0f}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _aktivite_feed():
+    """Son 10 sistem aktivitesi akışı."""
+    st.markdown("---")
+    st.markdown(
+        '<div style="font-size:1rem;font-weight:700;color:#111827;margin-bottom:10px;">'
+        '⚡ Son Aktiviteler</div>',
+        unsafe_allow_html=True,
+    )
+    df = load_data("aktivite")
+    if df.empty:
+        st.caption("Aktivite kaydı yok.")
+        return
+
+    g = df.copy()
+    try:
+        g = g.sort_values("Tarih", ascending=False)
+    except Exception:
+        pass
+    g = g.head(10)
+
+    RENK = {
+        "Oluşturuldu":  "#10B981",
+        "Durum Değişti":"#3B82F6",
+        "Güncellendi":  "#F59E0B",
+        "Silindi":      "#EF4444",
+    }
+
+    for _, row in g.iterrows():
+        aksiyon  = str(row.get("Aksiyon", ""))
+        renk     = RENK.get(aksiyon, "#64748B")
+        tarih    = str(row.get("Tarih", ""))
+        saat     = str(row.get("Saat", ""))
+        kullanici= str(row.get("Kullanici", ""))
+        tip      = str(row.get("Parent_Tip", ""))
+        pid      = str(row.get("Parent_ID", ""))
+        detay    = str(row.get("Detay", ""))
+
+        st.markdown(
+            f'<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F1F5F9;">'
+            f'<div style="min-width:110px;font-size:.72rem;color:#94A3B8;">{tarih} {saat[:5]}</div>'
+            f'<div style="min-width:6px;background:{renk};border-radius:3px;"></div>'
+            f'<div style="flex:1;font-size:.8rem;color:#475569;">'
+            f'<span style="font-weight:600;color:{renk};">{aksiyon}</span> '
+            f'· {tip} <b>{pid}</b>'
+            f'{(" — " + detay[:60]) if detay else ""}'
+            f'<span style="color:#94A3B8;margin-left:8px;">👤 {kullanici}</span>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
