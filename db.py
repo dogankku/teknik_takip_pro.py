@@ -17,7 +17,10 @@ FILES = {k: f"vt_{k}.csv" for k in COLS}
 
 def _build_client(creds_dict: dict):
     creds = Credentials.from_service_account_info(creds_dict, scopes=GOOGLE_SCOPES)
-    return gspread.authorize(creds)
+    # gspread 6.x kaldırdı gspread.authorize() → gspread.Client kullan
+    if hasattr(gspread, "authorize"):
+        return gspread.authorize(creds)          # gspread < 6
+    return gspread.Client(auth=creds)            # gspread >= 6
 
 
 def get_gs_client():

@@ -601,11 +601,11 @@ html, body, [class*="css"] {{ font-family: 'Inter', -apple-system, sans-serif; }
 .sb-status.online .dot {{ background: {C["success"]}; }}
 .sb-status.offline .dot {{ background: {C["warning"]}; }}
 
-/* Hide branding */
+/* Hide Streamlit branding */
 #MainMenu {{ visibility: hidden; }}
 footer {{ visibility: hidden; }}
-[data-testid="stToolbar"] {{ display: none; }}
-[data-testid="stHeader"] {{ display: none; }}
+[data-testid="stToolbar"] {{ visibility: hidden; }}
+[data-testid="stDecoration"] {{ display: none; }}
 </style>
 """
 
