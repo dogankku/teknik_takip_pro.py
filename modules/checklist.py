@@ -1,11 +1,12 @@
 import json
 import streamlit as st
 import pandas as pd
-from datetime import date
+from datetime import date, datetime
 from db import load_data, save_data
 from constants import SORU_GRUPLARI
 from style import section_header
 from auth import current_user
+from barkod import yeni_id
 
 
 def render(secilen_tarih: date):
@@ -13,14 +14,12 @@ def render(secilen_tarih: date):
                    f"{secilen_tarih.strftime('%d.%m.%Y')} - Kontrol formları",
                    pill="OPERASYON")
 
-    tabs = st.tabs(["📋 Standart Kontroller", "📝 Şablon ile Doldur", "📊 Özet"])
+    tabs = st.tabs(["📋 Standart Kontroller", "📝 Şablon ile Doldur", "📊 Özet & Arıza"])
 
     with tabs[0]:
         _standart_kontroller(secilen_tarih)
-
     with tabs[1]:
         _sablon_kontrol(secilen_tarih)
-
     with tabs[2]:
         _ozet(secilen_tarih)
 
@@ -65,15 +64,11 @@ def _standart_kontroller(secilen_tarih: date):
                             for idx, soru in enumerate(sorular):
                                 c1, c2, c3 = st.columns([6, 2, 3])
                                 c1.write(soru)
-                                durum = c2.radio(
-                                    "D", ["Tamam", "Sorunlu"],
-                                    key=f"rd_{bolum}_{alt_grup}_{idx}",
-                                    horizontal=True, label_visibility="collapsed",
-                                )
-                                not_txt = c3.text_input(
-                                    "Not", key=f"nt_{bolum}_{alt_grup}_{idx}",
-                                    label_visibility="collapsed",
-                                )
+                                durum = c2.radio("D", ["Tamam", "Sorunlu"],
+                                                 key=f"rd_{bolum}_{alt_grup}_{idx}",
+                                                 horizontal=True, label_visibility="collapsed")
+                                not_txt = c3.text_input("Not", key=f"nt_{bolum}_{alt_grup}_{idx}",
+                                                        label_visibility="collapsed")
                                 cevaplar.append({
                                     "Tarih": tarih_str, "Bolum": bolum, "Alt_Grup": alt_grup,
                                     "Soru": soru, "Durum": durum, "Aciklama": not_txt,
@@ -98,7 +93,7 @@ def _sablon_kontrol(secilen_tarih: date):
     df_lok = load_data("lokasyon")
 
     if df_sbl.empty:
-        st.info("Henüz şablon oluşturulmamış. 'Şablon Yönetimi' menüsünden ekleyebilirsiniz.")
+        st.info("Henüz şablon oluşturulmamış.")
         return
 
     pers = df_pers["Isim"].tolist() if not df_pers.empty else ["Personel Yok"]
@@ -162,9 +157,7 @@ def _sablon_kontrol(secilen_tarih: date):
                 "Tarih": tarih_str,
                 "Bolum": row_sbl.get("Kategori", ""),
                 "Alt_Grup": row_sbl.get("Ad", ""),
-                "Soru": soru,
-                "Durum": durum,
-                "Aciklama": not_txt,
+                "Soru": soru, "Durum": durum, "Aciklama": not_txt,
                 "Kontrol_Eden": kontrolcu,
                 "Puan": 1 if durum == "Tamam" else 0,
                 "Sablon_ID": sec_sbl,
@@ -182,6 +175,11 @@ def _sablon_kontrol(secilen_tarih: date):
 
 def _ozet(secilen_tarih: date):
     df = load_data("checklist")
+    u = current_user() or {}
+    kullanici = u.get("Ad_Soyad", "Sistem")
+    df_p = load_data("personel")
+    pers = df_p["Isim"].tolist() if not df_p.empty else ["-"]
+
     if df.empty:
         st.info("Henüz kayıt yok.")
         return
@@ -202,8 +200,59 @@ def _ozet(secilen_tarih: date):
         ozet = bugun.groupby("Bolum")["Durum"].value_counts().unstack(fill_value=0)
         st.dataframe(ozet, use_container_width=True)
 
+    # ── Sorunlu maddeler → Arıza dönüştürme ──────────────────────────────────
     if not bugun.empty and sorunlu > 0:
         st.markdown("---")
-        st.markdown("**⚠️ Sorunlu Maddeler**")
-        sorunlu_df = bugun[bugun["Durum"] == "Sorunlu"][["Bolum", "Alt_Grup", "Soru", "Aciklama", "Kontrol_Eden"]]
-        st.dataframe(sorunlu_df, use_container_width=True, hide_index=True)
+        st.subheader("⚠️ Sorunlu Maddeler → Arıza Kaydı Oluştur")
+        sorunlu_df = bugun[bugun["Durum"] == "Sorunlu"].reset_index(drop=True)
+
+        for i, row in sorunlu_df.iterrows():
+            col_s, col_btn = st.columns([4, 1])
+            col_s.markdown(
+                f'<div style="background:#FEF2F2;border-left:3px solid #EF4444;'
+                f'padding:8px 12px;border-radius:4px;">'
+                f'<b>{row.get("Bolum","")}</b> / {row.get("Alt_Grup","")}<br>'
+                f'{row.get("Soru","")}'
+                f'{(" — " + row["Aciklama"]) if row.get("Aciklama") else ""}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            btn_key = f"ariza_olustur_{tarih_str}_{i}"
+            created_key = f"ariza_created_{tarih_str}_{i}"
+
+            if st.session_state.get(created_key):
+                col_btn.success("✅ Arıza\noluşturuldu")
+            elif col_btn.button("🛠️ Arıza\nOluştur", key=btn_key):
+                _checklist_to_ariza(row, kullanici, pers)
+                st.session_state[created_key] = True
+                st.rerun()
+
+
+def _checklist_to_ariza(row: pd.Series, kullanici: str, pers: list):
+    from aktivite_helper import log_ekle
+    df_a = load_data("ariza")
+    ariza_id = yeni_id("ARZ")
+    tanim = f"[Checklist] {row.get('Bolum','')} / {row.get('Alt_Grup','')} — {row.get('Soru','')}"
+    if row.get("Aciklama"):
+        tanim += f" | Not: {row['Aciklama']}"
+    sorumlu = row.get("Kontrol_Eden", pers[0] if pers else "")
+    if sorumlu not in pers and pers:
+        sorumlu = pers[0]
+
+    new_row = {
+        "ID": ariza_id,
+        "Tarih": str(date.today()),
+        "Saat": datetime.now().strftime("%H:%M"),
+        "Bolum": row.get("Bolum", "Genel"),
+        "Lokasyon": row.get("Alt_Grup", ""),
+        "Lokasyon_ID": row.get("Lokasyon_ID", ""),
+        "Ariza_Tanimi": tanim,
+        "Sorumlu": sorumlu,
+        "Durum": "Açık",
+        "Kapanis_Tarihi": "",
+        "Sure_Saat": 0, "Malzeme_Maliyet": 0, "Iscilik_Maliyet": 0,
+    }
+    df_a = pd.concat([df_a, pd.DataFrame([new_row])], ignore_index=True)
+    save_data(df_a, "ariza")
+    log_ekle("ariza", ariza_id, kullanici, "Oluşturuldu",
+             f"Checklist'ten otomatik: {row.get('Soru','')[:60]}")
