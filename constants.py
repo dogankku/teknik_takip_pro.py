@@ -24,18 +24,25 @@ SHEETS = {
     "sayac":      "Sayaclar",
     "okuma":      "SayacOkuma",
     "gider":      "Giderler",
+    # ── Xenia tarzı yeni modüller ────────────────────────────────────────────
+    "yorum":      "Yorumlar",
+    "aktivite":   "AktiviteLog",
+    "sablon":     "Sablonlar",
+    "media":      "Medya",
+    "lokasyon":   "Lokasyonlar",
+    "tekrar":     "TekrarliGorevler",
 }
 
 COLS = {
-    "checklist":  ["Tarih", "Bolum", "Alt_Grup", "Soru", "Durum", "Aciklama", "Kontrol_Eden"],
-    "ariza":      ["ID", "Tarih", "Saat", "Bolum", "Lokasyon", "Ariza_Tanimi", "Sorumlu", "Durum", "Kapanis_Tarihi"],
+    "checklist":  ["Tarih", "Bolum", "Alt_Grup", "Soru", "Durum", "Aciklama", "Kontrol_Eden", "Puan", "Sablon_ID", "Lokasyon_ID"],
+    "ariza":      ["ID", "Tarih", "Saat", "Bolum", "Lokasyon", "Lokasyon_ID", "Ariza_Tanimi", "Sorumlu", "Durum", "Kapanis_Tarihi", "Sure_Saat", "Malzeme_Maliyet", "Iscilik_Maliyet"],
     "vardiya":    ["Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Notlar"],
     "personel":   ["Isim", "Gorev", "Telefon"],
     "ekipman":    ["Barkod_ID", "Ekipman_Adi", "Kategori", "Lokasyon", "Marka_Model", "Seri_No", "Satin_Alma", "Sonraki_Bakim", "Durum", "Notlar"],
     "kullanici":  ["Kullanici_Adi", "Sifre_Hash", "Ad_Soyad", "Rol", "Daire_ID", "Telefon", "Email", "Aktif", "Olusturma"],
     "daire":      ["Daire_ID", "Blok", "Kat", "Daire_No", "M2", "Oda_Tipi", "Durum", "Notlar"],
     "sakin":      ["Sakin_ID", "Daire_ID", "Ad_Soyad", "Tip", "Telefon", "Email", "Giris_Tarihi", "Cikis_Tarihi", "Aktif"],
-    "talep":      ["Talep_ID", "Tarih", "Saat", "Daire_ID", "Sakin", "Kategori", "Baslik", "Aciklama", "Oncelik", "Durum", "Atanan", "SLA_Saat", "Cozum_Tarihi", "Cozum_Notu"],
+    "talep":      ["Talep_ID", "Tarih", "Saat", "Daire_ID", "Sakin", "Kategori", "Baslik", "Aciklama", "Oncelik", "Durum", "Atanan", "SLA_Saat", "Cozum_Tarihi", "Cozum_Notu", "Lokasyon_ID", "Sure_Saat", "Malzeme_Maliyet", "Iscilik_Maliyet"],
     "bakim_plan": ["Plan_ID", "Baslik", "Ekipman", "Lokasyon", "Periyot_Gun", "Sorumlu", "Yasal_Zorunlu", "Son_Yapilma", "Sonraki_Tarih", "Durum", "Notlar"],
     "bakim_log":  ["Log_ID", "Plan_ID", "Tarih", "Yapan", "Aciklama", "Sonraki_Tarih"],
     "tahakkuk":   ["Tahakkuk_ID", "Daire_ID", "Donem", "Tutar", "Son_Odeme", "Aciklama"],
@@ -45,6 +52,13 @@ COLS = {
     "sayac":      ["Sayac_ID", "Tip", "Lokasyon", "Daire_ID", "Birim_Fiyat", "Aktif"],
     "okuma":      ["Okuma_ID", "Sayac_ID", "Tarih", "Endeks", "Tuketim", "Tutar"],
     "gider":      ["Gider_ID", "Tarih", "Kategori", "Aciklama", "Tutar", "Belge_No", "Tedarikci"],
+    # ── Yeni modüller ────────────────────────────────────────────────────────
+    "yorum":      ["Yorum_ID", "Parent_Tip", "Parent_ID", "Kullanici", "Tarih", "Saat", "Metin"],
+    "aktivite":   ["Log_ID", "Parent_Tip", "Parent_ID", "Kullanici", "Tarih", "Saat", "Aksiyon", "Detay"],
+    "sablon":     ["Sablon_ID", "Ad", "Kategori", "Aciklama", "Sorular_JSON", "Olusturan", "Tarih", "Puanlama_Aktif"],
+    "media":      ["Media_ID", "Parent_Tip", "Parent_ID", "Dosya_Adi", "Mime", "Boyut", "Base64", "Yukleme_Tarihi", "Yukleyen"],
+    "lokasyon":   ["Lokasyon_ID", "Ana_Lokasyon", "Ad", "Tip", "Adres", "Notlar"],
+    "tekrar":     ["Tekrar_ID", "Baslik", "Aciklama", "Hedef_Tip", "Periyot_Gun", "Sonraki_Tarih", "Sorumlu", "Lokasyon_ID", "Sablon_ID", "Aktif", "Son_Olusturma"],
 }
 
 ROLLER = ["Admin", "Yonetici", "Teknisyen", "Sakin"]
@@ -53,8 +67,10 @@ ROLLER = ["Admin", "Yonetici", "Teknisyen", "Sakin"]
 YETKI = {
     "Admin":     "*",  # tüm modüller
     "Yonetici":  ["ana", "rapor", "checklist", "ariza", "ekipman", "daire", "talep",
-                  "bakim", "aidat", "stok", "sayac", "vardiya", "personel", "ayarlar"],
-    "Teknisyen": ["ana", "checklist", "ariza", "ekipman", "talep", "bakim", "stok", "vardiya"],
+                  "bakim", "aidat", "stok", "sayac", "vardiya", "personel", "ayarlar",
+                  "lokasyon", "sablon", "tekrar"],
+    "Teknisyen": ["ana", "checklist", "ariza", "ekipman", "talep", "bakim", "stok",
+                  "vardiya", "tekrar"],
     "Sakin":     ["ana", "sakin_talep", "sakin_aidat", "sakin_daire"],
 }
 

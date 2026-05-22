@@ -17,7 +17,8 @@ from db import gs_connected
 from auth import current_user, current_role, has_access, is_logged_in, logout
 from modules import (login, ana_sayfa, checklist, ariza, ekipman, daire,
                      talep, bakim_plan, aidat, stok, sayac, rapor,
-                     vardiya, personel, kullanici, ayarlar)
+                     vardiya, personel, kullanici, ayarlar,
+                     lokasyon, sablon, tekrar)
 
 # ── Login kontrolü ────────────────────────────────────────────────────────────
 if not is_logged_in():
@@ -27,8 +28,7 @@ if not is_logged_in():
 u   = current_user()
 rol = current_role()
 
-# ── Menü yapısı (Xenia tarzı: bölümlere ayrılmış) ─────────────────────────────
-# Her bölüm: (başlık_veya_None, [(ikon, etiket, key, render_fn), ...])
+# ── Menü yapısı ──────────────────────────────────────────────────────────────
 MENU_STRUCTURE = {
     "Admin": [
         (None, [
@@ -45,13 +45,16 @@ MENU_STRUCTURE = {
             ("✅", "Kontroller",    "checklist", checklist.render),
             ("📅", "Bakım Planı",   "bakim",     bakim_plan.render),
             ("🔄", "Vardiya",       "vardiya",   vardiya.render),
+            ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render),
         ]),
         ("ENVANTER & TESİS", [
-            ("📦", "Ekipman & Barkod", "ekipman", ekipman.render),
-            ("📋", "Stok",             "stok",    stok.render),
-            ("⚡", "Sayaç & Gider",    "sayac",   sayac.render),
+            ("📦", "Ekipman & Barkod", "ekipman",  ekipman.render),
+            ("📋", "Stok",             "stok",     stok.render),
+            ("⚡", "Sayaç & Gider",    "sayac",    sayac.render),
+            ("📍", "Lokasyonlar",      "lokasyon", lokasyon.render),
         ]),
         ("YÖNETİM", [
+            ("📝", "Şablonlar",     "sablon",    sablon.render),
             ("👥", "Personel",      "personel",  personel.render),
             ("👤", "Kullanıcılar",  "kullanici", kullanici.render),
             ("⚙️", "Ayarlar",       "ayarlar",   ayarlar.render),
@@ -72,15 +75,18 @@ MENU_STRUCTURE = {
             ("✅", "Kontroller",    "checklist", checklist.render),
             ("📅", "Bakım Planı",   "bakim",     bakim_plan.render),
             ("🔄", "Vardiya",       "vardiya",   vardiya.render),
+            ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render),
         ]),
         ("ENVANTER & TESİS", [
-            ("📦", "Ekipman & Barkod", "ekipman", ekipman.render),
-            ("📋", "Stok",             "stok",    stok.render),
-            ("⚡", "Sayaç & Gider",    "sayac",   sayac.render),
+            ("📦", "Ekipman & Barkod", "ekipman",  ekipman.render),
+            ("📋", "Stok",             "stok",     stok.render),
+            ("⚡", "Sayaç & Gider",    "sayac",    sayac.render),
+            ("📍", "Lokasyonlar",      "lokasyon", lokasyon.render),
         ]),
         ("YÖNETİM", [
-            ("👥", "Personel", "personel", personel.render),
-            ("⚙️", "Ayarlar",  "ayarlar",  ayarlar.render),
+            ("📝", "Şablonlar",  "sablon",   sablon.render),
+            ("👥", "Personel",   "personel", personel.render),
+            ("⚙️", "Ayarlar",    "ayarlar",  ayarlar.render),
         ]),
     ],
     "Teknisyen": [
@@ -92,6 +98,7 @@ MENU_STRUCTURE = {
             ("🛠️", "Arıza",        "ariza",     ariza.render),
             ("✅", "Kontroller",   "checklist", checklist.render),
             ("📅", "Bakım",        "bakim",     bakim_plan.render),
+            ("🔁", "Tekrarlı",     "tekrar",    tekrar.render),
         ]),
         ("ENVANTER", [
             ("📦", "Ekipman", "ekipman", ekipman.render),
@@ -114,11 +121,9 @@ MENU_STRUCTURE = {
 
 sections = MENU_STRUCTURE.get(rol, MENU_STRUCTURE["Sakin"])
 
-# Tüm öğeleri düzleştir
 all_items = [item for _, items in sections for item in items]
 default_key = all_items[0][2] if all_items else "ana"
 current_key = st.session_state.get("active_module_key", default_key)
-# Geçersizse default'a sıfırla
 if current_key not in [i[2] for i in all_items]:
     current_key = default_key
     st.session_state["active_module_key"] = default_key
