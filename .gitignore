@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.csv
+google_credentials.json
+spreadsheet_id.txt
+.streamlit/secrets.toml
