@@ -4,6 +4,7 @@ from datetime import date
 from db import load_data, save_data
 from barkod import make_barcode, make_qr, yeni_barkod_id, toplu_barkod_pdf
 from constants import EKIPMAN_KATEGORI
+from style import section_header
 
 
 def render(secilen_tarih: date):

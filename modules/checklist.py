@@ -3,10 +3,12 @@ import pandas as pd
 from datetime import date
 from db import load_data, save_data
 from constants import SORU_GRUPLARI
+from style import section_header
 
 
 def render(secilen_tarih: date):
-    st.header(f"✅ Günlük Kontroller ({secilen_tarih.strftime('%d.%m.%Y')})")
+    section_header("Günlük Kontroller", secilen_tarih.strftime("%d.%m.%Y"), "✅")
+    # st.header(f"✅ Günlük Kontroller ({secilen_tarih.strftime('%d.%m.%Y')})")
 
     df_check = load_data("checklist")
     df_pers = load_data("personel")
