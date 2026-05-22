@@ -3,7 +3,9 @@ import pandas as pd
 from datetime import date, datetime, timedelta
 from db import load_data
 from auth import current_user, current_role
-from style import kpi_card, section_header, alert_row, chart_card_start, chart_card_end
+from style import (kpi_card, section_header, alert_row, chart_card_start,
+                   chart_card_end, hero_banner, feature_card,
+                   action_group_title, action_card)
 
 try:
     import plotly.express as px
@@ -28,17 +30,75 @@ _LAYOUT = dict(
 def render(secilen_tarih: date):
     u = current_user() or {}
     rol = current_role() or ""
+    ad = u.get('Ad_Soyad', '').split()[0] if u.get('Ad_Soyad') else ''
 
     section_header(
-        f"Hoşgeldiniz, {u.get('Ad_Soyad', '').split()[0] if u.get('Ad_Soyad') else ''}",
-        f"{secilen_tarih.strftime('%d.%m.%Y')} • Genel sistem durumu ve uyarılar",
+        f"Hoşgeldiniz, {ad}",
+        f"{secilen_tarih.strftime('%d %B %Y')} • Tüm sistem genel bakışı",
         pill="KONTROL MERKEZİ",
     )
 
     if rol == "Sakin":
         _sakin_dashboard(u)
-    else:
-        _yonetim_dashboard(secilen_tarih)
+        return
+
+    # ── Hero banner (Xenia AI Co-Pilot tarzı) ─────────────────────────────────
+    hero_banner(
+        title="Akıllı Operasyon Asistanı",
+        subtitle="Sistem otomatik olarak gecikmiş bakımları, kritik stokları ve acil talepleri sizin için izler.",
+        badge="AKTİF",
+        icon="✨",
+    )
+
+    # ── Feature Cards (Quick Actions - Xenia tarzı 2 büyük kart) ──────────────
+    fc1, fc2 = st.columns(2)
+    with fc1:
+        feature_card(
+            "Talep & Şikayet Yönetimi",
+            "Sakinlerden gelen istekleri öncelik ve SLA takibi ile yönetin.",
+            icon="📨", color="purple",
+        )
+    with fc2:
+        feature_card(
+            "Bakım & Operasyon",
+            "Periyodik bakımları takip edin, arızaları iş emrine bağlayın.",
+            icon="🔧", color="pink",
+        )
+
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+
+    # ── Hızlı erişim kartları (Pre-Built Reports tarzı 3 sütun) ──────────────
+    g1, g2, g3 = st.columns(3)
+
+    with g1:
+        action_group_title("🏢  Mülk Yönetimi")
+        action_card("Daire & Sakin Kayıtları", "🏠", "purple")
+        action_card("Aidat & Tahsilat", "💰", "amber")
+        action_card("Doluluk Özeti", "📊", "indigo")
+
+    with g2:
+        action_group_title("🔧  Operasyon")
+        action_card("Açık Arızalar", "🛠️", "rose")
+        action_card("Bekleyen Talepler", "📨", "purple")
+        action_card("Bakım Takvimi", "📅", "blue")
+        action_card("Günlük Kontroller", "✅", "green")
+
+    with g3:
+        action_group_title("📦  Envanter & Mali")
+        action_card("Ekipman & Barkod", "📦", "teal")
+        action_card("Stok Durumu", "📋", "green")
+        action_card("Sayaç & Tüketim", "⚡", "amber")
+        action_card("Gider Takibi", "💸", "pink")
+
+    st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+    # ── KPI metrikleri ────────────────────────────────────────────────────────
+    st.markdown(
+        '<div style="font-size:1rem;font-weight:700;color:#111827;margin-bottom:14px;">'
+        '📊 Anlık Durum</div>',
+        unsafe_allow_html=True,
+    )
+    _yonetim_dashboard(secilen_tarih)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

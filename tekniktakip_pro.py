@@ -1,4 +1,4 @@
-"""Teknik Operasyon Sistemi — Otel / Rezidans / Toplu Konut."""
+"""Teknik Operasyon Sistemi — Xenia tarzı modern arayüz."""
 import streamlit as st
 from datetime import date
 
@@ -9,12 +9,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Style önce inject edilmeli
-from style import inject_css, sidebar_brand, sidebar_user_card, sidebar_status
+from style import (inject_css, sidebar_brand, sidebar_user_card,
+                   sidebar_status, nav_section, nav_item)
 inject_css()
 
 from db import gs_connected
-from auth import current_user, current_role, has_access, is_logged_in, logout, ensure_default_admin
+from auth import current_user, current_role, has_access, is_logged_in, logout
 from modules import (login, ana_sayfa, checklist, ariza, ekipman, daire,
                      talep, bakim_plan, aidat, stok, sayac, rapor,
                      vardiya, personel, kullanici, ayarlar)
@@ -27,95 +27,130 @@ if not is_logged_in():
 u   = current_user()
 rol = current_role()
 
-# ── Menü tanımları ────────────────────────────────────────────────────────────
-MENU_DEFS = {
+# ── Menü yapısı (Xenia tarzı: bölümlere ayrılmış) ─────────────────────────────
+# Her bölüm: (başlık_veya_None, [(ikon, etiket, key, render_fn), ...])
+MENU_STRUCTURE = {
     "Admin": [
-        ("🏠  Ana Sayfa",         "ana",       ana_sayfa.render),
-        ("📑  Raporlar",          "rapor",     rapor.render),
-        ("─────────────────", None, None),
-        ("🏢  Daire & Sakin",     "daire",     daire.render),
-        ("📨  Talepler",          "talep",     talep.render),
-        ("💰  Aidat & Tahsilat",  "aidat",     aidat.render),
-        ("─────────────────", None, None),
-        ("✅  Kontrol Listeleri", "checklist", checklist.render),
-        ("🛠️  Arıza Takip",       "ariza",     ariza.render),
-        ("📅  Bakım Planı",       "bakim",     bakim_plan.render),
-        ("📦  Ekipman & Barkod",  "ekipman",   ekipman.render),
-        ("📋  Stok",              "stok",      stok.render),
-        ("⚡  Sayaç & Gider",     "sayac",     sayac.render),
-        ("─────────────────", None, None),
-        ("🔄  Vardiya Defteri",   "vardiya",   vardiya.render),
-        ("👥  Personel",          "personel",  personel.render),
-        ("👤  Kullanıcılar",      "kullanici", kullanici.render),
-        ("⚙️  Ayarlar",           "ayarlar",   ayarlar.render),
+        (None, [
+            ("🏠", "Ana Sayfa",  "ana",   ana_sayfa.render),
+            ("📑", "Raporlar",   "rapor", rapor.render),
+        ]),
+        ("MÜLK YÖNETİMİ", [
+            ("🏢", "Daire & Sakin", "daire", daire.render),
+            ("📨", "Talepler",      "talep", talep.render),
+            ("💰", "Aidat",         "aidat", aidat.render),
+        ]),
+        ("OPERASYON", [
+            ("🛠️", "Arıza Takip",   "ariza",     ariza.render),
+            ("✅", "Kontroller",    "checklist", checklist.render),
+            ("📅", "Bakım Planı",   "bakim",     bakim_plan.render),
+            ("🔄", "Vardiya",       "vardiya",   vardiya.render),
+        ]),
+        ("ENVANTER & TESİS", [
+            ("📦", "Ekipman & Barkod", "ekipman", ekipman.render),
+            ("📋", "Stok",             "stok",    stok.render),
+            ("⚡", "Sayaç & Gider",    "sayac",   sayac.render),
+        ]),
+        ("YÖNETİM", [
+            ("👥", "Personel",      "personel",  personel.render),
+            ("👤", "Kullanıcılar",  "kullanici", kullanici.render),
+            ("⚙️", "Ayarlar",       "ayarlar",   ayarlar.render),
+        ]),
     ],
     "Yonetici": [
-        ("🏠  Ana Sayfa",         "ana",       ana_sayfa.render),
-        ("📑  Raporlar",          "rapor",     rapor.render),
-        ("─────────────────", None, None),
-        ("🏢  Daire & Sakin",     "daire",     daire.render),
-        ("📨  Talepler",          "talep",     talep.render),
-        ("💰  Aidat & Tahsilat",  "aidat",     aidat.render),
-        ("─────────────────", None, None),
-        ("✅  Kontrol Listeleri", "checklist", checklist.render),
-        ("🛠️  Arıza Takip",       "ariza",     ariza.render),
-        ("📅  Bakım Planı",       "bakim",     bakim_plan.render),
-        ("📦  Ekipman & Barkod",  "ekipman",   ekipman.render),
-        ("📋  Stok",              "stok",      stok.render),
-        ("⚡  Sayaç & Gider",     "sayac",     sayac.render),
-        ("─────────────────", None, None),
-        ("🔄  Vardiya Defteri",   "vardiya",   vardiya.render),
-        ("👥  Personel",          "personel",  personel.render),
-        ("⚙️  Ayarlar",           "ayarlar",   ayarlar.render),
+        (None, [
+            ("🏠", "Ana Sayfa",  "ana",   ana_sayfa.render),
+            ("📑", "Raporlar",   "rapor", rapor.render),
+        ]),
+        ("MÜLK YÖNETİMİ", [
+            ("🏢", "Daire & Sakin", "daire", daire.render),
+            ("📨", "Talepler",      "talep", talep.render),
+            ("💰", "Aidat",         "aidat", aidat.render),
+        ]),
+        ("OPERASYON", [
+            ("🛠️", "Arıza Takip",   "ariza",     ariza.render),
+            ("✅", "Kontroller",    "checklist", checklist.render),
+            ("📅", "Bakım Planı",   "bakim",     bakim_plan.render),
+            ("🔄", "Vardiya",       "vardiya",   vardiya.render),
+        ]),
+        ("ENVANTER & TESİS", [
+            ("📦", "Ekipman & Barkod", "ekipman", ekipman.render),
+            ("📋", "Stok",             "stok",    stok.render),
+            ("⚡", "Sayaç & Gider",    "sayac",   sayac.render),
+        ]),
+        ("YÖNETİM", [
+            ("👥", "Personel", "personel", personel.render),
+            ("⚙️", "Ayarlar",  "ayarlar",  ayarlar.render),
+        ]),
     ],
     "Teknisyen": [
-        ("🏠  Ana Sayfa",         "ana",       ana_sayfa.render),
-        ("─────────────────", None, None),
-        ("📨  Talepler",          "talep",     talep.render),
-        ("✅  Kontrol Listeleri", "checklist", checklist.render),
-        ("🛠️  Arıza Takip",       "ariza",     ariza.render),
-        ("📅  Bakım Planı",       "bakim",     bakim_plan.render),
-        ("📦  Ekipman",           "ekipman",   ekipman.render),
-        ("📋  Stok",              "stok",      stok.render),
-        ("─────────────────", None, None),
-        ("🔄  Vardiya Defteri",   "vardiya",   vardiya.render),
+        (None, [
+            ("🏠", "Ana Sayfa", "ana", ana_sayfa.render),
+        ]),
+        ("İŞ EMİRLERİ", [
+            ("📨", "Talepler",     "talep",     talep.render),
+            ("🛠️", "Arıza",        "ariza",     ariza.render),
+            ("✅", "Kontroller",   "checklist", checklist.render),
+            ("📅", "Bakım",        "bakim",     bakim_plan.render),
+        ]),
+        ("ENVANTER", [
+            ("📦", "Ekipman", "ekipman", ekipman.render),
+            ("📋", "Stok",    "stok",    stok.render),
+        ]),
+        ("VARDİYA", [
+            ("🔄", "Vardiya Defteri", "vardiya", vardiya.render),
+        ]),
     ],
     "Sakin": [
-        ("🏠  Ana Sayfa",         "ana",          ana_sayfa.render),
-        ("📨  Talep & Şikayet",   "sakin_talep",  talep.render),
-        ("💰  Aidat Borcum",      "sakin_aidat",  aidat.render),
+        (None, [
+            ("🏠", "Ana Sayfa", "ana", ana_sayfa.render),
+        ]),
+        ("HİZMETLER", [
+            ("📨", "Talep & Şikayet", "sakin_talep", talep.render),
+            ("💰", "Aidat Borcum",    "sakin_aidat", aidat.render),
+        ]),
     ],
 }
 
-menu_items = MENU_DEFS.get(rol, MENU_DEFS["Sakin"])
-# Ayırıcıları menüden çıkar (sadece navigation için)
-nav_items = [(lbl, key, fn) for lbl, key, fn in menu_items if key is not None]
+sections = MENU_STRUCTURE.get(rol, MENU_STRUCTURE["Sakin"])
+
+# Tüm öğeleri düzleştir
+all_items = [item for _, items in sections for item in items]
+default_key = all_items[0][2] if all_items else "ana"
+current_key = st.session_state.get("active_module_key", default_key)
+# Geçersizse default'a sıfırla
+if current_key not in [i[2] for i in all_items]:
+    current_key = default_key
+    st.session_state["active_module_key"] = default_key
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     sidebar_brand()
     sidebar_user_card(u.get("Ad_Soyad", ""), rol)
-
     sidebar_status(gs_connected())
 
-    # Menü listesi
-    nav_labels = [m[0] for m in nav_items]
-    secim = st.radio("Menü", nav_labels, label_visibility="collapsed",
-                     key="menu_radio")
+    for section_label, items in sections:
+        if section_label:
+            nav_section(section_label)
+        for icon, label, key, _ in items:
+            if nav_item(icon, label, key, is_active=(key == current_key)):
+                st.session_state["active_module_key"] = key
+                st.rerun()
 
-    st.markdown("---")
+    st.sidebar.markdown('<div class="nav-section-title">&nbsp;</div>',
+                        unsafe_allow_html=True)
     tarih = st.date_input("📅 Tarih", date.today())
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    st.sidebar.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
 
-    if st.button("🚪  Çıkış Yap", use_container_width=True):
+    if st.sidebar.button("🚪   Çıkış Yap", key="logout_btn",
+                          use_container_width=True):
         logout()
         st.rerun()
 
 # ── Aktif modülü çalıştır ─────────────────────────────────────────────────────
-secili = next((m for m in nav_items if m[0] == secim), None)
-if secili:
-    _, key, func = secili
-    if has_access(key) or (key or "").startswith("sakin_"):
-        func(tarih)
-    else:
-        st.error("Bu modüle erişim yetkiniz yok.")
+active = next((it for it in all_items if it[2] == current_key), all_items[0])
+_, _, key, func = active
+if has_access(key) or key.startswith("sakin_"):
+    func(tarih)
+else:
+    st.error("Bu modüle erişim yetkiniz yok.")
