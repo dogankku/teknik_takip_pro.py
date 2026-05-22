@@ -602,8 +602,10 @@ html, body, [class*="css"] {{ font-family: 'Inter', -apple-system, sans-serif; }
 .sb-status.offline .dot {{ background: {C["warning"]}; }}
 
 /* Hide branding */
-#MainMenu, footer, header {{ visibility: hidden; }}
+#MainMenu {{ visibility: hidden; }}
+footer {{ visibility: hidden; }}
 [data-testid="stToolbar"] {{ display: none; }}
+[data-testid="stHeader"] {{ display: none; }}
 </style>
 """
 

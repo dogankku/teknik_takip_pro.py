@@ -7,8 +7,7 @@ def render():
 
     st.markdown("""
     <style>
-    /* Login sayfası tam ekran */
-    [data-testid="stSidebar"] { display: none; }
+    [data-testid="stSidebar"] { display: none !important; }
     [data-testid="stAppViewContainer"] > .main {
         background:
             radial-gradient(at 20% 20%, rgba(99,102,241,.18) 0px, transparent 50%),
@@ -18,28 +17,9 @@ def render():
             #FAFBFF !important;
     }
     .main .block-container {
-        padding-top: 0 !important;
-        max-width: 100% !important;
-    }
-    .lg-wrap {
-        min-height: 90vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    .lg-card {
-        max-width: 440px;
-        width: 100%;
-        background: rgba(255,255,255,.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,.5);
-        border-radius: 24px;
-        padding: 48px 44px;
-        box-shadow:
-            0 4px 12px rgba(15,23,42,.04),
-            0 24px 60px rgba(15,23,42,.12);
+        padding-top: 4rem !important;
+        max-width: 480px !important;
+        margin: 0 auto !important;
     }
     .lg-logo {
         width: 64px; height: 64px;
@@ -49,6 +29,8 @@ def render():
         display: flex; align-items: center; justify-content: center;
         font-size: 1.8rem; color: white;
         box-shadow: 0 12px 32px rgba(99,102,241,.4);
+        text-align: center;
+        line-height: 64px;
     }
     .lg-title {
         text-align: center;
@@ -94,42 +76,34 @@ def render():
         font-weight: 600;
     }
     </style>
-    <div class="lg-wrap">
     """, unsafe_allow_html=True)
 
-    _, col, _ = st.columns([1, 1.3, 1])
-    with col:
-        st.markdown("""
-        <div class="lg-card">
-            <div class="lg-logo">🏢</div>
-            <div class="lg-title">Hoşgeldiniz</div>
-            <div class="lg-sub">Teknik Operasyon Yönetim Sistemi'ne giriş yapın</div>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown('<div class="lg-logo">🏢</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lg-title">Hoşgeldiniz</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lg-sub">Teknik Operasyon Yönetim Sistemi\'ne giriş yapın</div>', unsafe_allow_html=True)
 
-        with st.form("login_form", clear_on_submit=False):
-            ka = st.text_input("Kullanıcı Adı", placeholder="admin")
-            sf = st.text_input("Şifre", type="password", placeholder="••••••••")
-            submitted = st.form_submit_button("Giriş Yap →",
-                                              type="primary",
-                                              use_container_width=True)
-            if submitted:
-                if ka and sf:
-                    u = login(ka, sf)
-                    if u:
-                        st.session_state["current_user"] = u
-                        st.rerun()
-                    else:
-                        st.error("Hatalı kullanıcı adı veya şifre.")
+    with st.form("login_form", clear_on_submit=False):
+        ka = st.text_input("Kullanıcı Adı", placeholder="admin")
+        sf = st.text_input("Şifre", type="password", placeholder="••••••••")
+        submitted = st.form_submit_button("Giriş Yap →",
+                                          type="primary",
+                                          use_container_width=True)
+        if submitted:
+            if ka and sf:
+                u = login(ka, sf)
+                if u:
+                    st.session_state["current_user"] = u
+                    st.rerun()
                 else:
-                    st.warning("Lütfen tüm alanları doldurun.")
+                    st.error("Hatalı kullanıcı adı veya şifre.")
+            else:
+                st.warning("Lütfen tüm alanları doldurun.")
 
-        st.markdown("""
-        <div class="lg-hint">
-            <div class="lg-hint-label">İlk kurulum bilgileri</div>
-            <div class="lg-hint-row">
-                Kullanıcı: <code>admin</code> &nbsp; Şifre: <code>admin123</code>
-            </div>
+    st.markdown("""
+    <div class="lg-hint">
+        <div class="lg-hint-label">İlk kurulum bilgileri</div>
+        <div class="lg-hint-row">
+            Kullanıcı: <code>admin</code> &nbsp; Şifre: <code>admin123</code>
         </div>
-        </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
