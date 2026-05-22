@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 # Style önce inject edilmeli
-from style import inject_css, sidebar_brand, sidebar_user_card
+from style import inject_css, sidebar_brand, sidebar_user_card, sidebar_status
 inject_css()
 
 from db import gs_connected
@@ -96,21 +96,7 @@ with st.sidebar:
     sidebar_brand()
     sidebar_user_card(u.get("Ad_Soyad", ""), rol)
 
-    # Bağlantı durumu
-    if gs_connected():
-        st.markdown("""<div style="font-size:.72rem;color:#10B981;padding:4px 12px 8px;
-                       display:flex;align-items:center;gap:6px;">
-                       <span style="width:6px;height:6px;border-radius:50%;
-                       background:#10B981;display:inline-block;"></span>
-                       Google Sheets bağlı</div>""", unsafe_allow_html=True)
-    else:
-        st.markdown("""<div style="font-size:.72rem;color:#F59E0B;padding:4px 12px 8px;
-                       display:flex;align-items:center;gap:6px;">
-                       <span style="width:6px;height:6px;border-radius:50%;
-                       background:#F59E0B;display:inline-block;"></span>
-                       Yerel CSV modu</div>""", unsafe_allow_html=True)
-
-    st.markdown("---")
+    sidebar_status(gs_connected())
 
     # Menü listesi
     nav_labels = [m[0] for m in nav_items]

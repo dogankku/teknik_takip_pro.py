@@ -6,7 +6,7 @@ from style import section_header
 
 
 def render(secilen_tarih: date):
-    st.header("🛠️ Arıza Kayıtları")
+    section_header("Arıza Takip", "Arıza kayıtları ve iş emri sistemi", pill="OPERASYON")
     df_a = load_data("ariza")
     df_p = load_data("personel")
     pl = df_p["Isim"].tolist() if not df_p.empty else ["-"]

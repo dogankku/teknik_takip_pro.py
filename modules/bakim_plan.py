@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
@@ -7,7 +8,7 @@ from constants import BAKIM_PERIYOT
 
 
 def render(secilen_tarih: date):
-    st.header("📅 Periyodik Bakım Planı")
+    section_header("Periyodik Bakım", "Planlama ve uyumluluk takibi", pill="ÖNLEYİCİ BAKIM")
     tab1, tab2, tab3 = st.tabs(["📋 Planlar", "➕ Yeni Plan", "📜 Bakım Geçmişi"])
 
     with tab1: _planlar(secilen_tarih)

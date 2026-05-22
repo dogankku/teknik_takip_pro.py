@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime
@@ -6,7 +7,7 @@ from barkod import yeni_id
 
 
 def render(secilen_tarih: date):
-    st.header("🏢 Daire & Sakin Yönetimi")
+    section_header("Daire & Sakin", "Blok, daire ve sakin kayıtları", pill="MÜLK YÖNETİMİ")
     tab1, tab2, tab3 = st.tabs(["🏠 Daireler", "👨‍👩‍👧 Sakinler", "📊 Doluluk Özeti"])
 
     with tab1:

@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -7,7 +8,7 @@ from constants import GIDER_KATEGORI
 
 
 def render(secilen_tarih: date):
-    st.header("⚡ Sayaç Okuma & Gider Takibi")
+    section_header("Sayaç & Gider", "Tüketim ve harcama analizi", pill="MALİ TAKİP")
     tab1, tab2, tab3, tab4 = st.tabs(
         ["📊 Sayaç Listesi", "📖 Okuma Gir", "💸 Gider Kaydı", "📈 Tüketim Raporu"]
     )

@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
@@ -12,7 +13,7 @@ def render(secilen_tarih: date):
         _sakin_view()
         return
 
-    st.header("💰 Aidat Tahakkuk & Tahsilat")
+    section_header("Aidat & Tahsilat", "Tahakkuk, ödeme ve borç takibi", pill="MALİ")
     tab1, tab2, tab3, tab4 = st.tabs(
         ["📊 Borç Durumu", "📝 Tahakkuk", "💵 Tahsilat", "📦 Toplu Tahakkuk"]
     )
@@ -183,7 +184,7 @@ def _toplu_tahakkuk():
 def _sakin_view():
     u = current_user() or {}
     daire_id = u.get("Daire_ID", "")
-    st.header("💰 Aidat Borç Durumu")
+    section_header("Aidat Borç Durumu", "Mevcut bakiyeniz ve ödeme geçmişi", pill="DAİRENİZ")
     st.caption(f"Daire: **{daire_id or '(atanmamış)'}**")
     if not daire_id:
         return

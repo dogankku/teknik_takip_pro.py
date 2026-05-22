@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -5,7 +6,7 @@ from db import load_data, save_data
 
 
 def render(secilen_tarih: date):
-    st.header("👥 Personel Yönetimi")
+    section_header("Personel", "Personel listesi ve görev bilgileri", pill="İNSAN KAYNAKLARI")
     df_p = load_data("personel")
 
     with st.form("add_p"):

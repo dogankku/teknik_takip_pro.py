@@ -8,7 +8,7 @@ from style import section_header
 
 
 def render(secilen_tarih: date):
-    st.header("📦 Ekipman Takip & Barkod Sistemi")
+    section_header("Ekipman & Barkod", "Code-128 barkod ve QR ile envanter takibi", pill="ENVANTER")
     df_e = load_data("ekipman")
 
     tab1, tab2, tab3, tab4 = st.tabs(

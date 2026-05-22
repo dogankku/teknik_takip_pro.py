@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -7,7 +8,7 @@ from constants import ROLLER
 
 
 def render(secilen_tarih: date):
-    st.header("👤 Kullanıcı Yönetimi (Admin)")
+    section_header("Kullanıcı Yönetimi", "Rol ve yetki tanımları", pill="ADMİN")
 
     tab1, tab2, tab3 = st.tabs(["📋 Kullanıcılar", "➕ Yeni Kullanıcı", "✏️ Düzenle / Sil"])
 

@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -6,7 +7,7 @@ from report import df_to_excel, df_to_pdf
 
 
 def render(secilen_tarih: date):
-    st.header("📑 Raporlar (PDF / Excel)")
+    section_header("Raporlar", "PDF, Excel ve yedekleme", pill="ANALİZ")
 
     tab1, tab2, tab3 = st.tabs(["📅 Günlük Rapor", "📆 Dönem Raporu", "📦 Tüm Veri Yedek (Excel)"])
 

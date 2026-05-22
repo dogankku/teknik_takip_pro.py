@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import json
 from datetime import date
@@ -5,7 +6,7 @@ from db import get_worksheet
 
 
 def render(secilen_tarih: date):
-    st.header("⚙️ Google Workspace Ayarları")
+    section_header("Ayarlar", "Google Workspace bağlantısı ve sistem ayarları", pill="YAPILANDIRMA")
 
     with st.expander("📖 Kurulum Rehberi"):
         st.markdown("""

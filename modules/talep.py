@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta
@@ -21,7 +22,7 @@ def _sakin_talep_view():
     daire_id = u.get("Daire_ID", "")
     ad_soyad = u.get("Ad_Soyad", "")
 
-    st.header("📨 Talep & Şikayet")
+    section_header("Talep & Şikayet", "Yeni talep oluşturun ve geçmişi görüntüleyin", pill="DAİRENİZ")
     st.caption(f"Daire: **{daire_id or '(atanmamış)'}**")
 
     if not daire_id:
@@ -53,7 +54,7 @@ def _sakin_talep_view():
 
 
 def _yonetim_talep_view(secilen_tarih: date):
-    st.header("📨 Talep & Şikayet Yönetimi")
+    section_header("Talep Yönetimi", "Tüm sakin talepleri, atama ve SLA takibi", pill="OPERASYON")
 
     df = load_data("talep")
     df_d = load_data("daire")

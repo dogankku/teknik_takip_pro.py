@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -8,7 +9,7 @@ from constants import STOK_KATEGORI
 
 
 def render(secilen_tarih: date):
-    st.header("📋 Stok / Yedek Parça Yönetimi")
+    section_header("Stok & Yedek Parça", "Envanter ve kritik seviye uyarıları", pill="DEPO")
     tab1, tab2, tab3, tab4 = st.tabs(
         ["📦 Stok Listesi", "➕ Yeni Ürün", "🔁 Giriş/Çıkış", "📜 Hareket Geçmişi"]
     )

@@ -30,9 +30,9 @@ def render(secilen_tarih: date):
     rol = current_role() or ""
 
     section_header(
-        "Kontrol Merkezi",
-        f"Hoşgeldiniz, {u.get('Ad_Soyad', '')}  •  {secilen_tarih.strftime('%d %B %Y')}",
-        "🏢"
+        f"Hoşgeldiniz, {u.get('Ad_Soyad', '').split()[0] if u.get('Ad_Soyad') else ''}",
+        f"{secilen_tarih.strftime('%d.%m.%Y')} • Genel sistem durumu ve uyarılar",
+        pill="KONTROL MERKEZİ",
     )
 
     if rol == "Sakin":
@@ -77,9 +77,9 @@ def _yonetim_dashboard(secilen_tarih: date):
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
     c5, c6, c7 = st.columns(3)
-    with c5: kpi_card("Toplam Tahakkuk", f"{toplam_th:,.0f} ₺", "💰", "blue")
+    with c5: kpi_card("Toplam Tahakkuk", f"{toplam_th:,.0f} ₺", "💰", "purple")
     with c6: kpi_card("Toplam Tahsilat", f"{toplam_od:,.0f} ₺", "✅", "green")
-    with c7: kpi_card("Bu Ay Gider",     f"{bu_ay_g:,.0f} ₺",   "💸", "orange")
+    with c7: kpi_card("Bu Ay Gider",     f"{bu_ay_g:,.0f} ₺",   "💸", "teal")
 
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 

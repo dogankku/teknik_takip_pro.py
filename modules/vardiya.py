@@ -1,3 +1,4 @@
+from style import section_header
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -5,7 +6,7 @@ from db import load_data, save_data
 
 
 def render(secilen_tarih: date):
-    st.header("🔄 Vardiya Defteri")
+    section_header("Vardiya Defteri", "Dijital teslim tutanağı", pill="OPERASYON")
     df_v = load_data("vardiya")
     df_p = load_data("personel")
     pl = df_p["Isim"].tolist() if not df_p.empty else ["-"]

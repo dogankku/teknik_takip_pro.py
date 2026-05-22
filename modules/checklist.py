@@ -7,8 +7,9 @@ from style import section_header
 
 
 def render(secilen_tarih: date):
-    section_header("Günlük Kontroller", secilen_tarih.strftime("%d.%m.%Y"), "✅")
-    # st.header(f"✅ Günlük Kontroller ({secilen_tarih.strftime('%d.%m.%Y')})")
+    section_header("Günlük Kontroller",
+                   f"{secilen_tarih.strftime('%d.%m.%Y')} - Elektrik ve Mekanik kontrolleri",
+                   pill="OPERASYON")
 
     df_check = load_data("checklist")
     df_pers = load_data("personel")
