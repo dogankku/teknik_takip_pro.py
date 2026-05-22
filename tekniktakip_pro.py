@@ -1,4 +1,7 @@
 """Teknik Operasyon Sistemi — Xenia tarzı modern arayüz."""
+import sys, importlib as _il, traceback as _tb
+print("STARTUP: tekniktakip_pro.py başlatılıyor", flush=True)
+
 import streamlit as st
 from datetime import date
 
@@ -15,17 +18,16 @@ inject_css()
 
 from db import gs_connected
 from auth import current_user, current_role, has_access, is_logged_in, logout
-import importlib as _il
-import traceback as _tb
+
 
 def _load(name: str):
-    """Python 3.14 uyumlu modül yükleme — hata durumunda Streamlit'e gösterir."""
     try:
-        return _il.import_module(f"modules.{name}")
+        m = _il.import_module(f"modules.{name}")
+        print(f"STARTUP: {name} yüklendi ✓", flush=True)
+        return m
     except Exception as _e:
-        st.error(f"❌ Modül yüklenemedi: **{name}** — `{type(_e).__name__}: {_e}`")
-        st.code(_tb.format_exc(), language="python")
-        st.stop()
+        print(f"STARTUP HATA: {name} — {_e}\n{_tb.format_exc()}", flush=True)
+        raise  # Streamlit'e tam traceback göster
 
 login         = _load("login")
 ana_sayfa     = _load("ana_sayfa")

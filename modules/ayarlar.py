@@ -3,7 +3,7 @@ import streamlit as st
 import json
 import base64
 from datetime import date
-from db import get_worksheet, load_data, save_data
+from db import get_worksheet
 
 
 def render(secilen_tarih: date):
@@ -26,8 +26,6 @@ def render(secilen_tarih: date):
 
 def _bina_bilgileri():
     st.markdown("**🏢 Bina / Site Bilgileri**")
-
-    df = load_data("ayarlar") if True else None
 
     bina_adi   = st.session_state.get("bina_adi", "Teknik Operasyon Sistemi")
     bina_adres = st.session_state.get("bina_adres", "")
