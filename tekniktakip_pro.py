@@ -15,11 +15,40 @@ inject_css()
 
 from db import gs_connected
 from auth import current_user, current_role, has_access, is_logged_in, logout
-from modules import (login, ana_sayfa, checklist, ariza, ekipman, daire,
-                     talep, bakim_plan, aidat, stok, sayac, rapor,
-                     vardiya, personel, kullanici, ayarlar,
-                     lokasyon, sablon, tekrar,
-                     aktivite_log, media_yonetim, maliyet)
+import importlib as _il
+import traceback as _tb
+
+def _load(name: str):
+    """Python 3.14 uyumlu modül yükleme — hata durumunda Streamlit'e gösterir."""
+    try:
+        return _il.import_module(f"modules.{name}")
+    except Exception as _e:
+        st.error(f"❌ Modül yüklenemedi: **{name}** — `{type(_e).__name__}: {_e}`")
+        st.code(_tb.format_exc(), language="python")
+        st.stop()
+
+login         = _load("login")
+ana_sayfa     = _load("ana_sayfa")
+checklist     = _load("checklist")
+ariza         = _load("ariza")
+ekipman       = _load("ekipman")
+daire         = _load("daire")
+talep         = _load("talep")
+bakim_plan    = _load("bakim_plan")
+aidat         = _load("aidat")
+stok          = _load("stok")
+sayac         = _load("sayac")
+rapor         = _load("rapor")
+vardiya       = _load("vardiya")
+personel      = _load("personel")
+kullanici     = _load("kullanici")
+ayarlar       = _load("ayarlar")
+lokasyon      = _load("lokasyon")
+sablon        = _load("sablon")
+tekrar        = _load("tekrar")
+aktivite_log  = _load("aktivite_log")
+media_yonetim = _load("media_yonetim")
+maliyet       = _load("maliyet")
 
 # ── Login kontrolü ────────────────────────────────────────────────────────────
 if not is_logged_in():
