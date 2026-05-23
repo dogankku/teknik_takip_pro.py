@@ -59,32 +59,31 @@ html, body, [class*="css"] {{ font-family: 'Inter', -apple-system, sans-serif; }
     padding: 16px 20px 6px;
 }}
 
-/* NAV ITEM - applied to all sidebar buttons (the "default" / non-active state) */
+/* NAV ITEM - sidebar nav butonları (on_click callback kullanıyor) */
 [data-testid="stSidebar"] .stButton > button {{
     background: transparent !important;
     color: {C["txt_2"]} !important;
     border: none !important;
     border-radius: 8px !important;
-    padding: 8px 12px !important;
-    margin: 1px 12px !important;
+    padding: 8px 14px !important;
     text-align: left !important;
     justify-content: flex-start !important;
     font-weight: 500 !important;
     font-size: .87rem !important;
-    width: calc(100% - 24px) !important;
-    transition: all .15s ease !important;
+    transition: background .15s ease !important;
     box-shadow: none !important;
 }}
 [data-testid="stSidebar"] .stButton > button:hover {{
     background: {C["border_lt"]} !important;
     color: {C["txt"]} !important;
+    box-shadow: none !important;
 }}
-[data-testid="stSidebar"] .stButton > button:focus {{
+[data-testid="stSidebar"] .stButton > button:focus:not(:active) {{
     box-shadow: none !important;
     outline: none !important;
 }}
 
-/* ACTIVE NAV ITEM rendered as div (matches button style but highlighted) */
+/* ACTIVE NAV ITEM — aktif modül HTML div olarak render edilir */
 .nav-item-active {{
     display: flex;
     align-items: center;
@@ -92,12 +91,11 @@ html, body, [class*="css"] {{ font-family: 'Inter', -apple-system, sans-serif; }
     background: {C["primary_lt"]};
     color: {C["primary_dk"]};
     border-radius: 8px;
-    padding: 8px 12px;
-    margin: 1px 12px;
+    padding: 8px 14px;
+    margin: 1px 0;
     font-weight: 600;
     font-size: .87rem;
     border-left: 3px solid {C["primary"]};
-    padding-left: 9px;
 }}
 
 /* Date input in sidebar */

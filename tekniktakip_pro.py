@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 from style import (inject_css, sidebar_brand, sidebar_user_card,
-                   sidebar_status, nav_section, nav_item)
+                   sidebar_status, nav_section)
 inject_css()
 
 from db import gs_connected
@@ -27,7 +27,7 @@ def _load(name: str):
         return m
     except Exception as _e:
         print(f"STARTUP HATA: {name} — {_e}\n{_tb.format_exc()}", flush=True)
-        raise  # Streamlit'e tam traceback göster
+        raise
 
 login         = _load("login")
 ana_sayfa     = _load("ana_sayfa")
@@ -73,11 +73,11 @@ MENU_STRUCTURE = {
             ("💰", "Aidat",         "aidat", aidat.render),
         ]),
         ("OPERASYON", [
-            ("🛠️", "Arıza Takip",   "ariza",     ariza.render),
-            ("✅", "Kontroller",    "checklist", checklist.render),
-            ("📅", "Bakım Planı",   "bakim",     bakim_plan.render),
-            ("🔄", "Vardiya",       "vardiya",   vardiya.render),
-            ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render),
+            ("🛠️", "Arıza Takip",       "ariza",     ariza.render),
+            ("✅", "Kontroller",        "checklist", checklist.render),
+            ("📅", "Bakım Planı",       "bakim",     bakim_plan.render),
+            ("🔄", "Vardiya",           "vardiya",   vardiya.render),
+            ("🔁", "Tekrarlı Görevler", "tekrar",    tekrar.render),
         ]),
         ("ENVANTER & TESİS", [
             ("📦", "Ekipman & Barkod", "ekipman",  ekipman.render),
@@ -87,14 +87,14 @@ MENU_STRUCTURE = {
         ]),
         ("ANALİZ & DENETİM", [
             ("💸", "Maliyet Paneli",   "maliyet",      maliyet.render),
-            ("⚡", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render),
+            ("📋", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render),
             ("🖼️", "Medya Yönetimi",   "media",        media_yonetim.render),
         ]),
         ("YÖNETİM", [
-            ("📝", "Şablonlar",     "sablon",    sablon.render),
-            ("👥", "Personel",      "personel",  personel.render),
-            ("👤", "Kullanıcılar",  "kullanici", kullanici.render),
-            ("⚙️", "Ayarlar",       "ayarlar",   ayarlar.render),
+            ("📝", "Şablonlar",    "sablon",    sablon.render),
+            ("👥", "Personel",     "personel",  personel.render),
+            ("👤", "Kullanıcılar", "kullanici", kullanici.render),
+            ("⚙️", "Ayarlar",      "ayarlar",   ayarlar.render),
         ]),
     ],
     "Yonetici": [
@@ -108,11 +108,11 @@ MENU_STRUCTURE = {
             ("💰", "Aidat",         "aidat", aidat.render),
         ]),
         ("OPERASYON", [
-            ("🛠️", "Arıza Takip",   "ariza",     ariza.render),
-            ("✅", "Kontroller",    "checklist", checklist.render),
-            ("📅", "Bakım Planı",   "bakim",     bakim_plan.render),
-            ("🔄", "Vardiya",       "vardiya",   vardiya.render),
-            ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render),
+            ("🛠️", "Arıza Takip",       "ariza",     ariza.render),
+            ("✅", "Kontroller",        "checklist", checklist.render),
+            ("📅", "Bakım Planı",       "bakim",     bakim_plan.render),
+            ("🔄", "Vardiya",           "vardiya",   vardiya.render),
+            ("🔁", "Tekrarlı Görevler", "tekrar",    tekrar.render),
         ]),
         ("ENVANTER & TESİS", [
             ("📦", "Ekipman & Barkod", "ekipman",  ekipman.render),
@@ -122,13 +122,13 @@ MENU_STRUCTURE = {
         ]),
         ("ANALİZ & DENETİM", [
             ("💸", "Maliyet Paneli",   "maliyet",      maliyet.render),
-            ("⚡", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render),
+            ("📋", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render),
             ("🖼️", "Medya Yönetimi",   "media",        media_yonetim.render),
         ]),
         ("YÖNETİM", [
-            ("📝", "Şablonlar",  "sablon",   sablon.render),
-            ("👥", "Personel",   "personel", personel.render),
-            ("⚙️", "Ayarlar",    "ayarlar",  ayarlar.render),
+            ("📝", "Şablonlar", "sablon",   sablon.render),
+            ("👥", "Personel",  "personel", personel.render),
+            ("⚙️", "Ayarlar",   "ayarlar",  ayarlar.render),
         ]),
     ],
     "Teknisyen": [
@@ -136,11 +136,11 @@ MENU_STRUCTURE = {
             ("🏠", "Ana Sayfa", "ana", ana_sayfa.render),
         ]),
         ("İŞ EMİRLERİ", [
-            ("📨", "Talepler",     "talep",     talep.render),
-            ("🛠️", "Arıza",        "ariza",     ariza.render),
-            ("✅", "Kontroller",   "checklist", checklist.render),
-            ("📅", "Bakım",        "bakim",     bakim_plan.render),
-            ("🔁", "Tekrarlı",     "tekrar",    tekrar.render),
+            ("📨", "Talepler",         "talep",     talep.render),
+            ("🛠️", "Arıza",            "ariza",     ariza.render),
+            ("✅", "Kontroller",       "checklist", checklist.render),
+            ("📅", "Bakım",            "bakim",     bakim_plan.render),
+            ("🔁", "Tekrarlı",         "tekrar",    tekrar.render),
         ]),
         ("ENVANTER", [
             ("📦", "Ekipman", "ekipman", ekipman.render),
@@ -163,10 +163,20 @@ MENU_STRUCTURE = {
 
 sections = MENU_STRUCTURE.get(rol, MENU_STRUCTURE["Sakin"])
 
-all_items = [item for _, items in sections for item in items]
-default_key = all_items[0][2] if all_items else "ana"
+# ── Düz nav listesi ───────────────────────────────────────────────────────────
+_nav_labels: list[str]       = []
+_nav_keys:   list[str]       = []
+_nav_funcs:  dict            = {}
+
+for _sec_label, _items in sections:
+    for _icon, _label, _key, _func in _items:
+        _nav_labels.append(f"{_icon}   {_label}")
+        _nav_keys.append(_key)
+        _nav_funcs[_key] = _func
+
+default_key = _nav_keys[0] if _nav_keys else "ana"
 current_key = st.session_state.get("active_module_key", default_key)
-if current_key not in [i[2] for i in all_items]:
+if current_key not in _nav_keys:
     current_key = default_key
     st.session_state["active_module_key"] = default_key
 
@@ -175,19 +185,40 @@ with st.sidebar:
     sidebar_brand()
     sidebar_user_card(u.get("Ad_Soyad", ""), rol)
     sidebar_status(gs_connected())
+    st.sidebar.markdown("---")
 
-    for section_label, items in sections:
-        if section_label:
-            nav_section(section_label)
-        for icon, label, key, _ in items:
-            if nav_item(icon, label, key, is_active=(key == current_key)):
-                st.session_state["active_module_key"] = key
-                st.rerun()
+    # Section başlıklarını radio'nun üstüne markdown olarak ekle
+    for _sec_label, _items in sections:
+        if _sec_label:
+            st.sidebar.markdown(
+                f'<div class="nav-section-title">{_sec_label}</div>',
+                unsafe_allow_html=True,
+            )
+        for _icon, _label, _key, _ in _items:
+            # Her modül için ayrı buton — on_click ile state güncelle
+            _is_active = (_key == current_key)
+            if _is_active:
+                st.sidebar.markdown(
+                    f'<div class="nav-item-active">'
+                    f'<span style="font-size:1rem">{_icon}</span>'
+                    f'<span>{_label}</span></div>',
+                    unsafe_allow_html=True,
+                )
+            else:
+                def _make_cb(_k=_key):
+                    def _cb():
+                        st.session_state["active_module_key"] = _k
+                    return _cb
 
-    st.sidebar.markdown('<div class="nav-section-title">&nbsp;</div>',
-                        unsafe_allow_html=True)
-    tarih = st.date_input("📅 Tarih", date.today())
-    st.sidebar.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+                st.sidebar.button(
+                    f"{_icon}   {_label}",
+                    key=f"nav_{_key}",
+                    use_container_width=True,
+                    on_click=_make_cb(),
+                )
+
+    st.sidebar.markdown("---")
+    tarih = st.sidebar.date_input("📅 Tarih", date.today())
 
     if st.sidebar.button("🚪   Çıkış Yap", key="logout_btn",
                           use_container_width=True):
@@ -195,9 +226,18 @@ with st.sidebar:
         st.rerun()
 
 # ── Aktif modülü çalıştır ─────────────────────────────────────────────────────
-active = next((it for it in all_items if it[2] == current_key), all_items[0])
-_, _, key, func = active
-if has_access(key) or key.startswith("sakin_"):
-    func(tarih)
+_active_key  = st.session_state.get("active_module_key", default_key)
+_active_func = _nav_funcs.get(_active_key)
+
+if _active_func is None:
+    st.error("Modül bulunamadı.")
+elif has_access(_active_key) or _active_key.startswith("sakin_"):
+    try:
+        _active_func(tarih)
+    except Exception as _ex:
+        import traceback as _traceback
+        st.error(f"⚠️ Modül hatası: {_ex}")
+        with st.expander("Hata detayı (geliştirici)"):
+            st.code(_traceback.format_exc())
 else:
     st.error("Bu modüle erişim yetkiniz yok.")
