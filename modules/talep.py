@@ -57,6 +57,20 @@ def render(secilen_tarih: date):
                 tid = yeni_id('TLP')
                 row = {'Talep_ID':tid,'Tarih':str(secilen_tarih),'Saat':datetime.now().strftime('%H:%M'),'Daire_ID':daire,'Sakin':sakin,'Kategori':kat,'Baslik':baslik,'Aciklama':aciklama,'Oncelik':oncelik,'Durum':durum,'Atanan':atanan,'SLA_Saat':ONCELIK_SLA.get(oncelik,72),'Cozum_Tarihi':'','Cozum_Notu':'','Lokasyon_ID':'','Sure_Saat':0,'Malzeme_Maliyet':0,'Iscilik_Maliyet':0}
                 df = pd.concat([df,pd.DataFrame([row])], ignore_index=True); save_data(df,'talep'); log_ekle('talep',tid,atanan,'Oluşturuldu',baslik)
+                # ── Bildirim ──
+                try:
+                    tetikler = st.session_state.get("bildirim_tetikler", {})
+                    if tetikler.get("talep_yeni", True):
+                        from bildirim_helper import bildirim_gonder, personel_iletisim
+                        email_s, tel_s = personel_iletisim(atanan) if atanan else ("", "")
+                        bildirim_gonder(
+                            baslik=f"📨 Yeni Talep: {tid}",
+                            icerik=f"Başlık: {baslik}\nÖncelik: {oncelik}\nDaire: {daire}\nAtanan: {atanan or 'Atanmadı'}",
+                            email_list=[email_s] if email_s else [],
+                            telefon_list=[tel_s] if tel_s else [],
+                        )
+                except Exception:
+                    pass
                 st.success(f'Talep oluşturuldu: {tid}'); st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     else:

@@ -1,6 +1,7 @@
 """Kullanıcı yönetimi, parola hash, RBAC."""
 from __future__ import annotations
 import hashlib
+import json
 import streamlit as st
 from datetime import datetime
 import pandas as pd
@@ -67,9 +68,45 @@ def is_logged_in() -> bool:
 
 
 def has_access(modul_key: str) -> bool:
+    """3 katlı RBAC: Admin bypass → kullanıcı override → DB rol tablosu → sabit fallback."""
     rol = current_role()
     if not rol:
         return False
+    if rol == "Admin":
+        return True
+
+    u = current_user() or {}
+
+    # Katman 1: Kullanıcı bazlı engel
+    try:
+        kapali = json.loads(str(u.get("Kapali_Modul", "") or "[]"))
+        if modul_key in kapali:
+            return False
+    except Exception:
+        pass
+
+    # Katman 2: Kullanıcı bazlı ek izin
+    try:
+        ekstra = json.loads(str(u.get("Ekstra_Modul", "") or "[]"))
+        if modul_key in ekstra:
+            return True
+    except Exception:
+        pass
+
+    # Katman 3: Dinamik rol tablosu (Google Sheets / CSV)
+    try:
+        df_yr = load_data("yetki_rol")
+        if not df_yr.empty:
+            row = df_yr[df_yr["Rol"].astype(str) == str(rol)]
+            if not row.empty:
+                modul_list = json.loads(str(row.iloc[0].get("Modul_JSON", "[]") or "[]"))
+                if modul_list == ["*"]:
+                    return True
+                return modul_key in modul_list
+    except Exception:
+        pass
+
+    # Katman 4: Sabit fallback
     yetki = YETKI.get(rol, [])
     if yetki == "*":
         return True

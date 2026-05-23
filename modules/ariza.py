@@ -111,6 +111,20 @@ def _new(df: pd.DataFrame, pl: list[str], lok_opts: list[str], secilen_tarih: da
             row = {'ID':ariza_id,'Tarih':str(secilen_tarih),'Saat':datetime.now().strftime('%H:%M'),'Bolum':bol,'Lokasyon':lok,'Lokasyon_ID':'','Ariza_Tanimi':tanim.strip(),'Sorumlu':sor,'Durum':durum,'Kapanis_Tarihi':'','Sure_Saat':sure,'Malzeme_Maliyet':malz,'Iscilik_Maliyet':isc}
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
             save_data(df,'ariza'); log_ekle('ariza', ariza_id, (current_user() or {}).get('Ad_Soyad','Sistem'), 'Oluşturuldu', f'Bölüm: {bol}')
+            # ── Bildirim ──
+            try:
+                tetikler = st.session_state.get("bildirim_tetikler", {})
+                if tetikler.get("ariza_yeni", True):
+                    from bildirim_helper import bildirim_gonder, personel_iletisim
+                    email_s, tel_s = personel_iletisim(sor)
+                    bildirim_gonder(
+                        baslik=f"🛠️ Yeni Arıza: {ariza_id}",
+                        icerik=f"Tanım: {tanim.strip()}\nBölüm: {bol}\nLokasyon: {lok}\nSorumlu: {sor}",
+                        email_list=[email_s] if email_s else [],
+                        telefon_list=[tel_s] if tel_s else [],
+                    )
+            except Exception:
+                pass
             st.success(f'Arıza kaydedildi: {ariza_id}'); st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 

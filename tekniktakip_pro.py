@@ -44,6 +44,9 @@ tekrar = _load("tekrar")
 aktivite_log = _load("aktivite_log")
 media_yonetim = _load("media_yonetim")
 maliyet = _load("maliyet")
+duyuru = _load("duyuru")
+rezervasyon = _load("rezervasyon")
+ziyaretci = _load("ziyaretci")
 
 if not is_logged_in():
     login.render()
@@ -59,6 +62,7 @@ MENU_STRUCTURE = {
         ("OPERASYON", [("🛠️", "Arıza Takip", "ariza", ariza.render), ("✅", "Kontroller", "checklist", checklist.render), ("📅", "Bakım Planı", "bakim", bakim_plan.render), ("🔄", "Vardiya", "vardiya", vardiya.render), ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render)]),
         ("ENVANTER & TESİS", [("📦", "Ekipman & Barkod", "ekipman", ekipman.render), ("📋", "Stok", "stok", stok.render), ("⚡", "Sayaç & Gider", "sayac", sayac.render), ("📍", "Lokasyonlar", "lokasyon", lokasyon.render)]),
         ("ANALİZ & DENETİM", [("💸", "Maliyet Paneli", "maliyet", maliyet.render), ("📋", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render), ("🖼️", "Medya Yönetimi", "media", media_yonetim.render)]),
+        ("İLETİŞİM & GÜVENLİK", [("📢", "Duyurular", "duyuru", duyuru.render), ("📅", "Rezervasyon", "rezervasyon", rezervasyon.render), ("👥", "Ziyaretçi & Kargo", "ziyaretci", ziyaretci.render)]),
         ("YÖNETİM", [("📝", "Şablonlar", "sablon", sablon.render), ("👥", "Personel", "personel", personel.render), ("👤", "Kullanıcılar", "kullanici", kullanici.render), ("⚙️", "Ayarlar", "ayarlar", ayarlar.render)]),
     ],
     "Yonetici": [
@@ -67,17 +71,24 @@ MENU_STRUCTURE = {
         ("OPERASYON", [("🛠️", "Arıza Takip", "ariza", ariza.render), ("✅", "Kontroller", "checklist", checklist.render), ("📅", "Bakım Planı", "bakim", bakim_plan.render), ("🔄", "Vardiya", "vardiya", vardiya.render), ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render)]),
         ("ENVANTER & TESİS", [("📦", "Ekipman & Barkod", "ekipman", ekipman.render), ("📋", "Stok", "stok", stok.render), ("⚡", "Sayaç & Gider", "sayac", sayac.render), ("📍", "Lokasyonlar", "lokasyon", lokasyon.render)]),
         ("ANALİZ & DENETİM", [("💸", "Maliyet Paneli", "maliyet", maliyet.render), ("📋", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render), ("🖼️", "Medya Yönetimi", "media", media_yonetim.render)]),
+        ("İLETİŞİM & GÜVENLİK", [("📢", "Duyurular", "duyuru", duyuru.render), ("📅", "Rezervasyon", "rezervasyon", rezervasyon.render), ("👥", "Ziyaretçi & Kargo", "ziyaretci", ziyaretci.render)]),
         ("YÖNETİM", [("📝", "Şablonlar", "sablon", sablon.render), ("👥", "Personel", "personel", personel.render), ("⚙️", "Ayarlar", "ayarlar", ayarlar.render)]),
     ],
     "Teknisyen": [
         (None, [("🏠", "Ana Sayfa", "ana", ana_sayfa.render)]),
         ("İŞ EMİRLERİ", [("📨", "Talepler", "talep", talep.render), ("🛠️", "Arıza", "ariza", ariza.render), ("✅", "Kontroller", "checklist", checklist.render), ("📅", "Bakım", "bakim", bakim_plan.render), ("🔁", "Tekrarlı", "tekrar", tekrar.render)]),
         ("ENVANTER", [("📦", "Ekipman", "ekipman", ekipman.render), ("📋", "Stok", "stok", stok.render)]),
-        ("VARDİYA", [("🔄", "Vardiya Defteri", "vardiya", vardiya.render)]),
+        ("VARDİYA & GÜVENLİK", [("🔄", "Vardiya Defteri", "vardiya", vardiya.render), ("👥", "Ziyaretçi & Kargo", "ziyaretci", ziyaretci.render)]),
     ],
     "Sakin": [
         (None, [("🏠", "Ana Sayfa", "ana", ana_sayfa.render)]),
-        ("HİZMETLER", [("📨", "Talep & Şikayet", "sakin_talep", talep.render), ("💰", "Aidat Borcum", "sakin_aidat", aidat.render)]),
+        ("HİZMETLER", [
+            ("📨", "Talep & Şikayet", "sakin_talep", talep.render),
+            ("💰", "Aidat Borcum", "sakin_aidat", aidat.render),
+            ("📢", "Duyurular", "sakin_duyuru", duyuru.render),
+            ("📅", "Rezervasyon", "sakin_rezervasyon", rezervasyon.render),
+            ("📦", "Kargolarım", "sakin_ziyaretci", ziyaretci.render),
+        ]),
     ],
 }
 sections = MENU_STRUCTURE.get(rol, MENU_STRUCTURE["Sakin"])
