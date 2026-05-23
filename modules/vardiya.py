@@ -85,6 +85,20 @@ def render(secilen_tarih: date):
                 }
                 df_v = pd.concat([df_v, pd.DataFrame([row])], ignore_index=True)
                 save_data(df_v, "vardiya")
+                # ── Vardiya devir bildirimi ──
+                try:
+                    tetikler = st.session_state.get("bildirim_tetikler", {})
+                    if tetikler.get("vardiya_devir", False):
+                        from bildirim_helper import bildirim_gonder, personel_iletisim
+                        email_ta, tel_ta = personel_iletisim(ta)
+                        bildirim_gonder(
+                            baslik=f"🔄 Vardiya Devri — {v}",
+                            icerik=f"Teslim Eden: {te}\nTeslim Alan: {ta}\nTarih: {secilen_tarih}\nNotlar:\n{notlar_tam[:300]}",
+                            email_list=[email_ta] if email_ta else [],
+                            telefon_list=[tel_ta] if tel_ta else [],
+                        )
+                except Exception:
+                    pass
                 st.success("Vardiya devri kaydedildi.")
                 st.rerun()
 

@@ -36,6 +36,8 @@ SHEETS = {
     "rezervasyon":"Rezervasyonlar",
     "ziyaretci":  "Ziyaretciler",
     "kargo":      "Kargolar",
+    # ── Yetki & Bildirim ────────────────────────────────────────────────────
+    "yetki_rol":  "YetkiRol",
 }
 
 COLS = {
@@ -44,7 +46,7 @@ COLS = {
     "vardiya":    ["Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Notlar"],
     "personel":   ["Isim", "Gorev", "Telefon", "Email", "Adres", "Dogum_Tarihi", "Sertifikalar", "Aktif"],
     "ekipman":    ["Barkod_ID", "Ekipman_Adi", "Kategori", "Lokasyon", "Marka_Model", "Seri_No", "Satin_Alma", "Sonraki_Bakim", "Durum", "Notlar"],
-    "kullanici":  ["Kullanici_Adi", "Sifre_Hash", "Ad_Soyad", "Rol", "Daire_ID", "Telefon", "Email", "Aktif", "Olusturma"],
+    "kullanici":  ["Kullanici_Adi", "Sifre_Hash", "Ad_Soyad", "Rol", "Daire_ID", "Telefon", "Email", "Aktif", "Olusturma", "Ekstra_Modul", "Kapali_Modul"],
     "daire":      ["Daire_ID", "Blok", "Kat", "Daire_No", "M2", "Oda_Tipi", "Durum", "Notlar"],
     "sakin":      ["Sakin_ID", "Daire_ID", "Ad_Soyad", "Tip", "Telefon", "Email", "Giris_Tarihi", "Cikis_Tarihi", "Aktif"],
     "talep":      ["Talep_ID", "Tarih", "Saat", "Daire_ID", "Sakin", "Kategori", "Baslik", "Aciklama", "Oncelik", "Durum", "Atanan", "SLA_Saat", "Cozum_Tarihi", "Cozum_Notu", "Lokasyon_ID", "Sure_Saat", "Malzeme_Maliyet", "Iscilik_Maliyet"],
@@ -69,6 +71,8 @@ COLS = {
     "rezervasyon":["Rezervasyon_ID", "Tarih", "Saat", "Alan", "Daire_ID", "Talep_Eden", "Katilimci", "Notlar", "Durum", "Olusturma"],
     "ziyaretci":  ["Ziyaretci_ID", "Tarih", "Giris_Saati", "Cikis_Saati", "Isim", "Tip", "Daire_ID", "Plaka", "Notlar", "Kaydeden"],
     "kargo":      ["Kargo_ID", "Gelis_Tarihi", "Firma", "Alici_Daire", "Alici_Isim", "Takip_No", "Notlar", "Durum", "Teslim_Tarihi", "Teslim_Alan", "Kaydeden"],
+    # ── Yetki & Bildirim ────────────────────────────────────────────────────
+    "yetki_rol":  ["Rol", "Modul_JSON"],
 }
 
 ROLLER = ["Admin", "Yonetici", "Teknisyen", "Sakin"]
@@ -112,6 +116,34 @@ STOK_KATEGORI = [
 ]
 
 TALEP_KATEGORI = ["Elektrik", "Mekanik", "Tesisat", "Temizlik", "Asansör", "Bahçe", "Genel", "Şikayet"]
+
+# Tüm modüllerin anahtar → görünen adı
+ALL_MODULES: dict[str, str] = {
+    "ana":          "🏠 Ana Sayfa",
+    "rapor":        "📑 Raporlar",
+    "daire":        "🏢 Daire & Sakin",
+    "talep":        "📨 Talepler",
+    "aidat":        "💰 Aidat",
+    "ariza":        "🛠️ Arıza Takip",
+    "checklist":    "✅ Kontroller",
+    "bakim":        "📅 Bakım Planı",
+    "vardiya":      "🔄 Vardiya",
+    "tekrar":       "🔁 Tekrarlı Görevler",
+    "ekipman":      "📦 Ekipman",
+    "stok":         "📋 Stok",
+    "sayac":        "⚡ Sayaç & Gider",
+    "lokasyon":     "📍 Lokasyonlar",
+    "maliyet":      "💸 Maliyet Paneli",
+    "aktivite_log": "📋 Aktivite Günlüğü",
+    "media":        "🖼️ Medya Yönetimi",
+    "duyuru":       "📢 Duyurular",
+    "rezervasyon":  "📅 Rezervasyon",
+    "ziyaretci":    "👥 Ziyaretçi & Kargo",
+    "sablon":       "📝 Şablonlar",
+    "personel":     "👥 Personel",
+    "kullanici":    "👤 Kullanıcılar",
+    "ayarlar":      "⚙️ Ayarlar",
+}
 
 SORU_GRUPLARI = {
     "Elektrik": {

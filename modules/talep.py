@@ -220,6 +220,21 @@ def _yeni_talep_kaydet(daire_id, sakin_ad, kategori, baslik, aciklama, oncelik, 
     }
     df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     save_data(df, "talep")
+    # ── Bildirim ──
+    try:
+        import streamlit as _st
+        tetikler = _st.session_state.get("bildirim_tetikler", {})
+        if tetikler.get("talep_yeni", True):
+            from bildirim_helper import bildirim_gonder, personel_iletisim
+            email_s, tel_s = personel_iletisim(atanan) if atanan else ("", "")
+            bildirim_gonder(
+                baslik=f"📨 Yeni Talep: {tid}",
+                icerik=f"Başlık: {baslik}\nÖncelik: {oncelik}\nDaire: {daire_id}\nAtanan: {atanan or 'Atanmadı'}",
+                email_list=[email_s] if email_s else [],
+                telefon_list=[tel_s] if tel_s else [],
+            )
+    except Exception:
+        pass
     return tid
 
 

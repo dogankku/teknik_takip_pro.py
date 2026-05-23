@@ -98,11 +98,34 @@ def _liste_yonetici():
                 if col_onay.button("✅", key=f"onay_{rid}", help="Onayla"):
                     df.loc[df["Rezervasyon_ID"] == rid, "Durum"] = "Onaylandı"
                     save_data(df, "rezervasyon")
+                    _rez_bildirim(row, "Onaylandı")
                     st.rerun()
                 if col_iptal.button("❌", key=f"iptal_{rid}", help="İptal Et"):
                     df.loc[df["Rezervasyon_ID"] == rid, "Durum"] = "İptal"
                     save_data(df, "rezervasyon")
+                    _rez_bildirim(row, "İptal")
                     st.rerun()
+
+
+def _rez_bildirim(row, yeni_durum: str):
+    try:
+        import streamlit as _st
+        tetikler = _st.session_state.get("bildirim_tetikler", {})
+        if not tetikler.get("rez_onay", True):
+            return
+        from bildirim_helper import bildirim_gonder, kullanici_iletisim
+        talep_eden = str(row.get("Talep_Eden", ""))
+        email_s, tel_s = kullanici_iletisim(talep_eden)
+        durum_ikonu = "✅" if yeni_durum == "Onaylandı" else "❌"
+        bildirim_gonder(
+            baslik=f"{durum_ikonu} Rezervasyon {yeni_durum}",
+            icerik=(f"Alan: {row.get('Alan','')}\nTarih: {row.get('Tarih','')} {row.get('Saat','')}\n"
+                    f"Durum: {yeni_durum}"),
+            email_list=[email_s] if email_s else [],
+            telefon_list=[tel_s] if tel_s else [],
+        )
+    except Exception:
+        pass
 
 
 def _yeni_form(kullanici: str, daire_id: str, secilen_tarih: date):

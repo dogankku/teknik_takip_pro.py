@@ -170,6 +170,21 @@ def _hareket():
                     "Aciklama": ack, "Kim": kim,
                 }])], ignore_index=True)
                 save_data(log, "stok_hrk")
+                # ── Kritik stok bildirimi ──
+                krt_seviye = float(pd.to_numeric(row.get("Kritik", 0), errors="coerce") or 0)
+                if tip == "Çıkış" and yeni_mevcut <= krt_seviye:
+                    try:
+                        tetikler = st.session_state.get("bildirim_tetikler", {})
+                        if tetikler.get("stok_kritik", True):
+                            from bildirim_helper import bildirim_gonder
+                            bildirim_gonder(
+                                baslik=f"⚠️ Kritik Stok: {row.get('Urun_Adi',sid)}",
+                                icerik=(f"Ürün: {row.get('Urun_Adi',sid)} ({sid})\n"
+                                        f"Mevcut: {yeni_mevcut} {row.get('Birim','')}\n"
+                                        f"Kritik Seviye: {krt_seviye}\nLütfen sipariş verin."),
+                            )
+                    except Exception:
+                        pass
                 st.success(f"İşlendi. Yeni stok: {yeni_mevcut} {row['Birim']}")
                 st.rerun()
 

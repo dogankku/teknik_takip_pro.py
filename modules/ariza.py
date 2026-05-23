@@ -95,6 +95,20 @@ def render(secilen_tarih: date):
                     save_data(df_a, "ariza")
                     log_ekle("ariza", ariza_id, kullanici, "Oluşturuldu",
                              f"Bölüm: {b}, Lokasyon: {lok_final}")
+                    # ── Bildirim gönder ──
+                    try:
+                        tetikler = st.session_state.get("bildirim_tetikler", {})
+                        if tetikler.get("ariza_yeni", True):
+                            from bildirim_helper import bildirim_gonder, personel_iletisim
+                            email_s, tel_s = personel_iletisim(s)
+                            bildirim_gonder(
+                                baslik=f"🛠️ Yeni Arıza: {ariza_id}",
+                                icerik=f"Tanım: {d.strip()}\nBölüm: {b}\nLokasyon: {lok_final}\nSorumlu: {s}",
+                                email_list=[email_s] if email_s else [],
+                                telefon_list=[tel_s] if tel_s else [],
+                            )
+                    except Exception:
+                        pass
                     st.success(f"Arıza kaydedildi: {ariza_id}")
                     st.rerun()
                 else:

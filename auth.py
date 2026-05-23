@@ -1,6 +1,6 @@
-"""Kullanıcı yönetimi, parola hash, RBAC."""
+"""Kullanıcı yönetimi, parola hash, dinamik RBAC."""
 from __future__ import annotations
-import hashlib
+import hashlib, json
 import streamlit as st
 from datetime import datetime
 import pandas as pd
@@ -67,9 +67,48 @@ def is_logged_in() -> bool:
 
 
 def has_access(modul_key: str) -> bool:
+    """Dinamik RBAC: Admin → her şey; diğerleri için 3 katmanlı kontrol."""
     rol = current_role()
     if not rol:
         return False
+
+    # Admin her şeye erişir
+    if rol == "Admin":
+        return True
+
+    u = current_user() or {}
+
+    # 1. Kullanıcı bazlı KAPATMA override (öncelikli ret)
+    try:
+        kapali = json.loads(str(u.get("Kapali_Modul", "") or "[]"))
+        if modul_key in kapali:
+            return False
+    except Exception:
+        pass
+
+    # 2. Kullanıcı bazlı AÇMA override
+    try:
+        ekstra = json.loads(str(u.get("Ekstra_Modul", "") or "[]"))
+        if modul_key in ekstra:
+            return True
+    except Exception:
+        pass
+
+    # 3. Dinamik rol yetkileri (Google Sheets / CSV'den)
+    try:
+        df_yr = load_data("yetki_rol")
+        if not df_yr.empty:
+            row = df_yr[df_yr["Rol"].astype(str) == str(rol)]
+            if not row.empty:
+                modul_json = str(row.iloc[0].get("Modul_JSON", "[]") or "[]")
+                modul_list = json.loads(modul_json)
+                if modul_list == ["*"]:
+                    return True
+                return modul_key in modul_list
+    except Exception:
+        pass
+
+    # 4. Sabit YETKI (constants.py fallback)
     yetki = YETKI.get(rol, [])
     if yetki == "*":
         return True
