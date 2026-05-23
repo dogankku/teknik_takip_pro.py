@@ -13,10 +13,10 @@ st.set_page_config(
 )
 
 from style import (inject_css, sidebar_brand, sidebar_user_card,
-                   sidebar_status, nav_section)
+                   sidebar_status, nav_section, top_header)
 inject_css()
 
-from db import gs_connected
+from db import gs_connected, load_data
 from auth import current_user, current_role, has_access, is_logged_in, logout
 
 
@@ -224,6 +224,28 @@ with st.sidebar:
                           use_container_width=True):
         logout()
         st.rerun()
+
+# ── Sağ üst header (bildirim + yardım) ────────────────────────────────────────
+def _notif_count() -> int:
+    n = 0
+    try:
+        _da = load_data("ariza")
+        if not _da.empty and "Durum" in _da.columns:
+            n += int(_da["Durum"].isin(["Açık", "Devam Ediyor"]).sum())
+    except Exception:
+        pass
+    try:
+        _dt = load_data("talep")
+        if not _dt.empty and "Durum" in _dt.columns:
+            n += int(_dt["Durum"].isin(["Açık", "Atandı", "Devam"]).sum())
+    except Exception:
+        pass
+    return n
+
+if rol != "Sakin":
+    top_header(_notif_count())
+else:
+    top_header(0)
 
 # ── Aktif modülü çalıştır ─────────────────────────────────────────────────────
 _active_key  = st.session_state.get("active_module_key", default_key)

@@ -557,6 +557,115 @@ html, body, [class*="css"] {{ font-family: 'Inter', -apple-system, sans-serif; }
     overflow: hidden;
 }}
 
+/* ═════════════════ TOP-RIGHT HEADER (🔔 + ?) ═════════════════ */
+.top-header {{
+    position: fixed; top: 14px; right: 30px; z-index: 1000;
+    display: flex; gap: 12px; align-items: center;
+}}
+.th-icon {{
+    width: 40px; height: 40px; border-radius: 11px;
+    background: #FFFFFF; border: 1px solid {C["border"]};
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; color: {C["txt_2"]};
+    position: relative; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15,23,42,.06);
+    transition: all .15s;
+}}
+.th-icon:hover {{ border-color: {C["primary_bd"]}; color: {C["primary"]}; }}
+.th-badge {{
+    position: absolute; top: -6px; right: -6px;
+    background: {C["danger"]}; color: #fff;
+    font-size: .6rem; font-weight: 800;
+    min-width: 17px; height: 17px; border-radius: 9999px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; border: 2px solid #fff;
+}}
+
+/* ═════════════════ DATA TABLE (renkli rozetli) ═════════════════ */
+.panel-card {{
+    background: {C["card_bg"]};
+    border: 1px solid {C["border"]};
+    border-radius: 16px;
+    padding: 18px 22px 14px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.04);
+    height: 100%;
+}}
+.panel-head {{
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+}}
+.panel-title {{ font-size: 1.1rem; font-weight: 700; color: {C["txt"]}; }}
+.panel-link {{ font-size: .78rem; font-weight: 600; color: {C["primary"]};
+    background: {C["primary_lt"]}; padding: 5px 12px; border-radius: 8px; }}
+.panel-foot {{
+    text-align: center; padding: 12px 0 2px;
+    font-size: .82rem; font-weight: 600; color: {C["primary"]};
+}}
+
+.data-table {{ width: 100%; border-collapse: collapse; font-size: .83rem; }}
+.data-table thead th {{
+    text-align: left; padding: 9px 12px;
+    font-size: .66rem; font-weight: 700; color: {C["txt_3"]};
+    text-transform: uppercase; letter-spacing: .04em;
+    border-bottom: 1px solid {C["border"]};
+}}
+.data-table tbody td {{
+    padding: 13px 12px; border-bottom: 1px solid {C["border_lt"]};
+    color: {C["txt_2"]}; vertical-align: middle;
+}}
+.data-table tbody tr:last-child td {{ border-bottom: none; }}
+.data-table tbody tr:hover {{ background: {C["page_bg"]}; }}
+.id-cell {{ color: {C["primary"]}; font-weight: 600; white-space: nowrap; }}
+.row-avatar {{
+    width: 28px; height: 28px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .62rem; font-weight: 700;
+    margin-right: 8px; vertical-align: middle;
+}}
+
+/* Status badge (tablo) */
+.st-badge {{ display: inline-block; padding: 4px 13px; border-radius: 9999px;
+    font-size: .72rem; font-weight: 700; white-space: nowrap; }}
+.st-acik   {{ background: #FEE2E2; color: #DC2626; }}
+.st-devam  {{ background: #FEF3C7; color: #D97706; }}
+.st-kapali {{ background: #D1FAE5; color: #059669; }}
+.st-bekle  {{ background: #E0E7FF; color: #4338CA; }}
+.st-iptal  {{ background: #F1F5F9; color: #64748B; }}
+
+/* ═════════════════ LIST CARD (Bugün Kontroller) ═════════════════ */
+.list-row {{
+    display: flex; align-items: center; gap: 13px;
+    padding: 12px 0; border-bottom: 1px solid {C["border_lt"]};
+}}
+.list-row:last-child {{ border-bottom: none; }}
+.list-check {{
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #D1FAE5; color: #059669;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; flex-shrink: 0;
+}}
+.list-check.warn {{ background: #FEF3C7; color: #D97706; }}
+.list-main {{ flex: 1; min-width: 0; }}
+.list-title {{ font-size: .87rem; font-weight: 600; color: {C["txt"]}; }}
+.list-sub {{ font-size: .74rem; color: {C["txt_3"]}; margin-top: 1px; }}
+.list-time {{ font-size: .76rem; color: {C["txt_3"]}; font-weight: 500; white-space: nowrap; }}
+
+/* KPI progress bar */
+.kpi-progress {{
+    height: 7px; background: {C["primary_lt"]};
+    border-radius: 9999px; margin-top: 13px; overflow: hidden;
+}}
+.kpi-progress > span {{ display: block; height: 100%;
+    background: {C["primary"]}; border-radius: 9999px; }}
+.kpi-pill {{
+    display: inline-block; margin-top: 10px;
+    background: #FEE2E2; color: #DC2626;
+    font-size: .72rem; font-weight: 700;
+    padding: 2px 9px; border-radius: 7px;
+}}
+.kpi-pill.up {{ background: #FEE2E2; color: #DC2626; }}
+.kpi-pill.down {{ background: #D1FAE5; color: #059669; }}
+
 /* Hide Streamlit branding */
 #MainMenu {{ visibility: hidden; }}
 footer {{ visibility: hidden; }}
@@ -592,8 +701,17 @@ def section_header(title: str, subtitle: str = "", icon: str = "", pill: str = "
 
 
 def kpi_card(label: str, value, icon: str = "", color: str = "blue",
-             delta: str = "", delta_type: str = ""):
-    delta_html = f'<div class="kpi-delta {delta_type}">{delta}</div>' if delta else ""
+             delta: str = "", delta_type: str = "", progress: int = None,
+             pill: str = "", pill_dir: str = "up"):
+    extra = ""
+    if progress is not None:
+        p = max(0, min(int(progress), 100))
+        extra = (f'<div class="kpi-progress"><span style="width:{p}%"></span></div>'
+                 f'<div class="kpi-delta" style="margin-top:6px">%{p}</div>')
+    elif pill:
+        extra = f'<div class="kpi-pill {pill_dir}">{pill}</div>'
+    elif delta:
+        extra = f'<div class="kpi-delta {delta_type}">{delta}</div>'
     st.markdown(f"""
     <div class="kpi-card {color}">
         <div class="kpi-top">
@@ -601,9 +719,42 @@ def kpi_card(label: str, value, icon: str = "", color: str = "blue",
             <div class="kpi-icon-bg">{icon}</div>
         </div>
         <div class="kpi-value">{value}</div>
-        {delta_html}
+        {extra}
     </div>
     """, unsafe_allow_html=True)
+
+
+def top_header(notif: int = 0):
+    badge = f'<span class="th-badge">{notif if notif < 100 else "99+"}</span>' if notif else ""
+    st.markdown(f"""
+    <div class="top-header">
+        <div class="th-icon" title="Bildirimler">🔔{badge}</div>
+        <div class="th-icon" title="Yardım">?</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+_STATUS_MAP = {
+    "Açık": "st-acik", "Acik": "st-acik",
+    "Devam Ediyor": "st-devam", "Devam": "st-devam",
+    "Tamamlandı": "st-kapali", "Tamamlandi": "st-kapali",
+    "Kapalı": "st-kapali", "Kapali": "st-kapali", "Çözüldü": "st-kapali",
+    "Beklemede": "st-bekle", "Atandı": "st-bekle",
+    "İptal": "st-iptal", "İptal Edildi": "st-iptal", "Kapatıldı": "st-iptal",
+}
+
+
+def status_badge(durum: str) -> str:
+    cls = _STATUS_MAP.get(str(durum), "st-bekle")
+    return f'<span class="st-badge {cls}">{durum}</span>'
+
+
+def avatar_chip(isim: str) -> str:
+    initials = "".join(w[0].upper() for w in str(isim or "?").split()[:2]) or "?"
+    h = sum(ord(c) for c in str(isim)) % 5
+    g = ["#4F46E5", "#0EA5E9", "#14B8A6", "#F59E0B", "#EC4899"][h]
+    return (f'<span class="row-avatar" style="background:{g}">{initials}</span>'
+            f'<span>{isim}</span>')
 
 
 def hero_banner(title: str, subtitle: str = "", badge: str = "", icon: str = "✨",

@@ -5,7 +5,7 @@ from db import load_data
 from auth import current_user, current_role
 from style import (kpi_card, section_header, alert_row, chart_card_start,
                    chart_card_end, hero_banner, feature_card,
-                   action_group_title, action_card)
+                   action_group_title, action_card, status_badge, avatar_chip)
 
 try:
     import plotly.express as px
@@ -42,63 +42,147 @@ def render(secilen_tarih: date):
         _sakin_dashboard(u)
         return
 
-    # ── Hero banner (Xenia AI Co-Pilot tarzı) ─────────────────────────────────
-    hero_banner(
-        title="Akıllı Operasyon Asistanı",
-        subtitle="Sistem otomatik olarak gecikmiş bakımları, kritik stokları ve acil talepleri sizin için izler.",
-        badge="AKTİF",
-        icon="✨",
-    )
+    # ── Mockup üst bölüm: 4 KPI + Son Arızalar / Bugün Kontroller ─────────────
+    _mockup_top(secilen_tarih)
 
-    # ── Feature Cards (Quick Actions - Xenia tarzı 2 büyük kart) ──────────────
-    fc1, fc2 = st.columns(2)
-    with fc1:
-        feature_card(
-            "Talep & Şikayet Yönetimi",
-            "Sakinlerden gelen istekleri öncelik ve SLA takibi ile yönetin.",
-            icon="📨", color="purple",
-        )
-    with fc2:
-        feature_card(
-            "Bakım & Operasyon",
-            "Periyodik bakımları takip edin, arızaları iş emrine bağlayın.",
-            icon="🔧", color="pink",
-        )
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
-
-    # ── Hızlı erişim kartları (Pre-Built Reports tarzı 3 sütun) ──────────────
-    g1, g2, g3 = st.columns(3)
-
-    with g1:
-        action_group_title("🏢  Mülk Yönetimi")
-        action_card("Daire & Sakin Kayıtları", "🏠", "purple")
-        action_card("Aidat & Tahsilat", "💰", "amber")
-        action_card("Doluluk Özeti", "📊", "indigo")
-
-    with g2:
-        action_group_title("🔧  Operasyon")
-        action_card("Açık Arızalar", "🛠️", "rose")
-        action_card("Bekleyen Talepler", "📨", "purple")
-        action_card("Bakım Takvimi", "📅", "blue")
-        action_card("Günlük Kontroller", "✅", "green")
-
-    with g3:
-        action_group_title("📦  Envanter & Mali")
-        action_card("Ekipman & Barkod", "📦", "teal")
-        action_card("Stok Durumu", "📋", "green")
-        action_card("Sayaç & Tüketim", "⚡", "amber")
-        action_card("Gider Takibi", "💸", "pink")
-
-    st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-
-    # ── KPI metrikleri ────────────────────────────────────────────────────────
+    # ── Detay analiz: grafikler + uyarılar ────────────────────────────────────
     st.markdown(
-        '<div style="font-size:1rem;font-weight:700;color:#111827;margin-bottom:14px;">'
-        '📊 Anlık Durum</div>',
+        '<div style="font-size:1.05rem;font-weight:700;color:#0F172A;margin-bottom:14px;">'
+        '📊 Detaylı Analiz</div>',
         unsafe_allow_html=True,
     )
     _yonetim_dashboard(secilen_tarih)
+
+
+# ── Mockup üst bölüm ──────────────────────────────────────────────────────────
+def _mockup_top(secilen_tarih: date):
+    df_a = load_data("ariza")
+    df_t = load_data("talep")
+    df_g = load_data("gider")
+    df_c = load_data("checklist")
+    today = pd.Timestamp(secilen_tarih)
+    tarih_str = str(secilen_tarih)
+
+    # KPI değerleri
+    acik_ariza = int(df_a["Durum"].isin(["Açık", "Devam Ediyor"]).sum()) if not df_a.empty and "Durum" in df_a.columns else 0
+    yeni_bugun = 0
+    if not df_a.empty and "Tarih" in df_a.columns:
+        yeni_bugun = int((df_a["Tarih"].astype(str) == tarih_str).sum())
+
+    acik_talep = int(df_t["Durum"].isin(["Açık", "Atandı", "Devam"]).sum()) if not df_t.empty and "Durum" in df_t.columns else 0
+
+    # Bugünkü kontrol oranı
+    ck_tamam, ck_top = 0, 0
+    if not df_c.empty and "Tarih" in df_c.columns:
+        ck_bugun = df_c[df_c["Tarih"].astype(str) == tarih_str]
+        ck_top = len(ck_bugun)
+        if "Puan" in ck_bugun.columns:
+            ck_tamam = int(pd.to_numeric(ck_bugun["Puan"], errors="coerce").fillna(0).eq(1).sum())
+    ck_oran = int(ck_tamam / ck_top * 100) if ck_top else 0
+
+    bu_ay_g = _bu_ay_gider(df_g, secilen_tarih)
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        kpi_card("Açık Arızalar", acik_ariza, "🛠️", "red" if acik_ariza else "green",
+                 pill=f"↑ {yeni_bugun} bugün" if yeni_bugun else "", pill_dir="up")
+    with c2:
+        kpi_card("Bugün Kontrol", f"{ck_tamam}/{ck_top}", "✅", "blue", progress=ck_oran)
+    with c3:
+        kpi_card("Bekleyen Talepler", acik_talep, "📨", "orange" if acik_talep else "green")
+    with c4:
+        kpi_card("Bu Ay Gider", f"₺{bu_ay_g:,.0f}", "💸", "green")
+
+    st.markdown("<div style='height:18px'></div>", unsafe_allow_html=True)
+
+    col_l, col_r = st.columns([1.6, 1])
+    with col_l:
+        _son_arizalar_card(df_a)
+    with col_r:
+        _bugun_kontroller_card(df_c, secilen_tarih)
+
+
+def _son_arizalar_card(df_a: pd.DataFrame):
+    rows = ""
+    if not df_a.empty:
+        g = df_a.copy()
+        try:
+            g = g.sort_values("Tarih", ascending=False)
+        except Exception:
+            pass
+        for _, r in g.head(4).iterrows():
+            tanim = str(r.get("Ariza_Tanimi", ""))
+            tanim_disp = tanim if len(tanim) <= 38 else tanim[:36] + "…"
+            rows += (
+                f"<tr>"
+                f"<td class='id-cell'>{r.get('ID','')}</td>"
+                f"<td>{r.get('Bolum','')}</td>"
+                f"<td>{tanim_disp}</td>"
+                f"<td>{avatar_chip(r.get('Sorumlu',''))}</td>"
+                f"<td>{status_badge(r.get('Durum',''))}</td>"
+                f"</tr>"
+            )
+    if not rows:
+        rows = "<tr><td colspan='5' style='text-align:center;color:#94A3B8;padding:24px'>Arıza kaydı yok</td></tr>"
+    st.markdown(
+        f"""
+        <div class="panel-card">
+            <div class="panel-head">
+                <span class="panel-title">Son Arızalar</span>
+                <span class="panel-link">Tümünü Gör →</span>
+            </div>
+            <table class="data-table">
+                <thead><tr>
+                    <th>ID</th><th>Bölüm</th><th>Tanım</th><th>Sorumlu</th><th>Durum</th>
+                </tr></thead>
+                <tbody>{rows}</tbody>
+            </table>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _bugun_kontroller_card(df_c: pd.DataFrame, secilen_tarih: date):
+    tarih_str = str(secilen_tarih)
+    rows = ""
+    if not df_c.empty and "Tarih" in df_c.columns:
+        bugun = df_c[df_c["Tarih"].astype(str) == tarih_str]
+        if not bugun.empty and "Alt_Grup" in bugun.columns:
+            grup = bugun.groupby(["Bolum", "Alt_Grup"]).agg(
+                toplam=("Soru", "count"),
+                tamam=("Puan", lambda s: pd.to_numeric(s, errors="coerce").fillna(0).eq(1).sum()),
+            ).reset_index()
+            for _, r in grup.head(6).iterrows():
+                ok = r["tamam"] == r["toplam"]
+                cls = "" if ok else "warn"
+                ico = "✓" if ok else "!"
+                rows += (
+                    f"<div class='list-row'>"
+                    f"<div class='list-check {cls}'>{ico}</div>"
+                    f"<div class='list-main'>"
+                    f"<div class='list-title'>{r['Bolum']}</div>"
+                    f"<div class='list-sub'>{r['Alt_Grup']}</div>"
+                    f"</div>"
+                    f"<div class='list-time'>{int(r['tamam'])}/{int(r['toplam'])}</div>"
+                    f"</div>"
+                )
+    if not rows:
+        rows = "<div style='text-align:center;color:#94A3B8;padding:24px;font-size:.85rem'>Bugün kontrol kaydı yok</div>"
+    st.markdown(
+        f"""
+        <div class="panel-card">
+            <div class="panel-head">
+                <span class="panel-title">Bugün Kontroller</span>
+                <span class="panel-link">Takvim →</span>
+            </div>
+            {rows}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────

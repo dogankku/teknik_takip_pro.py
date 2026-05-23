@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 from db import load_data, save_data
-from style import section_header
+from style import section_header, status_badge, avatar_chip
 from auth import current_user
 from barkod import yeni_id
 from yorum_helper import render_yorumlar
@@ -47,11 +47,8 @@ def render(secilen_tarih: date):
             if f_sor != "Tümü": g = g[g["Sorumlu"] == f_sor]
 
             g = g.sort_values("Tarih", ascending=False)
-            st.dataframe(
-                g[["ID", "Tarih", "Bolum", "Lokasyon", "Ariza_Tanimi",
-                   "Sorumlu", "Durum", "Kapanis_Tarihi"]],
-                use_container_width=True, hide_index=True,
-            )
+            st.caption(f"{len(g)} kayıt gösteriliyor")
+            _ariza_tablo(g)
 
             st.divider()
             st.subheader("🔍 Arıza Detayı")
@@ -103,6 +100,42 @@ def render(secilen_tarih: date):
     # ── TAB 2: İstatistikler ──────────────────────────────────────────────────
     with tabs[2]:
         _istatistikler(df_a)
+
+
+def _ariza_tablo(g: pd.DataFrame):
+    """Renkli durum rozetli HTML tablo (mockup tarzı)."""
+    rows = ""
+    for _, r in g.head(40).iterrows():
+        tarih = str(r.get("Tarih", ""))
+        saat = str(r.get("Saat", ""))
+        tarih_disp = f"{tarih} {saat[:5]}".strip()
+        tanim = str(r.get("Ariza_Tanimi", ""))
+        tanim_disp = tanim if len(tanim) <= 48 else tanim[:46] + "…"
+        rows += (
+            f"<tr>"
+            f"<td class='id-cell'>{r.get('ID','')}</td>"
+            f"<td style='white-space:nowrap'>{tarih_disp}</td>"
+            f"<td>{r.get('Bolum','')}</td>"
+            f"<td>{r.get('Lokasyon','')}</td>"
+            f"<td>{tanim_disp}</td>"
+            f"<td>{avatar_chip(r.get('Sorumlu',''))}</td>"
+            f"<td>{status_badge(r.get('Durum',''))}</td>"
+            f"</tr>"
+        )
+    st.markdown(
+        f"""
+        <div class="panel-card">
+        <table class="data-table">
+            <thead><tr>
+                <th>ID</th><th>Tarih</th><th>Bölüm</th><th>Lokasyon</th>
+                <th>Arıza Tanımı</th><th>Sorumlu</th><th>Durum</th>
+            </tr></thead>
+            <tbody>{rows}</tbody>
+        </table>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _ariza_detay(row: pd.Series, df_a: pd.DataFrame, pl: list, kullanici: str):
