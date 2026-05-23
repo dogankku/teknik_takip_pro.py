@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -42,12 +42,15 @@ def render(secilen_tarih: date):
             if pers_f != "Tümü":
                 g = g[(g["Teslim_Eden"] == pers_f) | (g["Teslim_Alan"] == pers_f)]
 
-            st.dataframe(
-                g[["Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Notlar"]].sort_values(
-                    "Tarih", ascending=False),
-                use_container_width=True, hide_index=True,
+            gs = g[["Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Notlar"]].sort_values(
+                "Tarih", ascending=False)
+            data_table(
+                gs,
+                [("Tarih", "Tarih"), ("Vardiya", "Vardiya"),
+                 ("Teslim_Eden", "Teslim Eden"), ("Teslim_Alan", "Teslim Alan"),
+                 ("Notlar", "Notlar")],
+                avatar_cols=["Teslim_Eden", "Teslim_Alan"], max_text=60,
             )
-
             st.markdown(f"**Toplam:** {len(g)} kayıt")
 
     # ── TAB 1: Yeni Devir ────────────────────────────────────────────────────
