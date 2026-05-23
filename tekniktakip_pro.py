@@ -1,4 +1,4 @@
-"""Teknik Operasyon Sistemi — modern Xenia tarzı Streamlit uygulama kabuğu."""
+"""Teknik Operasyon Sistemi — premium Xenia tarzı modern arayüz kabuğu."""
 from __future__ import annotations
 
 import importlib as _il
@@ -15,10 +15,11 @@ st.set_page_config(
 )
 
 from style import inject_css, sidebar_brand, sidebar_user_card, sidebar_status, nav_section, nav_item, top_header
-from db import gs_connected, load_data
-from auth import current_user, current_role, has_access, is_logged_in, logout
 
 inject_css()
+
+from db import gs_connected, load_data
+from auth import current_user, current_role, has_access, is_logged_in, logout
 
 
 def _load(name: str):
@@ -29,6 +30,7 @@ def _load(name: str):
         raise
 
 
+# Modüller
 login = _load("login")
 ana_sayfa = _load("ana_sayfa")
 checklist = _load("checklist")
@@ -52,69 +54,140 @@ aktivite_log = _load("aktivite_log")
 media_yonetim = _load("media_yonetim")
 maliyet = _load("maliyet")
 
+
+# Login kontrolü
 if not is_logged_in():
     login.render()
     st.stop()
 
 u = current_user() or {}
-rol = current_role()
+rol = current_role() or "Sakin"
+
 
 MENU_STRUCTURE = {
     "Admin": [
-        (None, [("🏠", "Ana Sayfa", "ana", ana_sayfa.render), ("📑", "Raporlar", "rapor", rapor.render)]),
-        ("MÜLK YÖNETİMİ", [("🏢", "Daire & Sakin", "daire", daire.render), ("📨", "Talepler", "talep", talep.render), ("💰", "Aidat", "aidat", aidat.render)]),
-        ("OPERASYON", [("🛠️", "Arıza Takip", "ariza", ariza.render), ("✅", "Kontroller", "checklist", checklist.render), ("📅", "Bakım Planı", "bakim", bakim_plan.render), ("🔄", "Vardiya", "vardiya", vardiya.render), ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render)]),
-        ("ENVANTER & TESİS", [("📦", "Ekipman & Barkod", "ekipman", ekipman.render), ("📋", "Stok", "stok", stok.render), ("⚡", "Sayaç & Gider", "sayac", sayac.render), ("📍", "Lokasyonlar", "lokasyon", lokasyon.render)]),
-        ("ANALİZ & DENETİM", [("💸", "Maliyet Paneli", "maliyet", maliyet.render), ("📋", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render), ("🖼️", "Medya Yönetimi", "media", media_yonetim.render)]),
-        ("YÖNETİM", [("📝", "Şablonlar", "sablon", sablon.render), ("👥", "Personel", "personel", personel.render), ("👤", "Kullanıcılar", "kullanici", kullanici.render), ("⚙️", "Ayarlar", "ayarlar", ayarlar.render)]),
+        (None, [
+            ("🏠", "Ana Sayfa", "ana", ana_sayfa.render),
+            ("📑", "Raporlar", "rapor", rapor.render),
+        ]),
+        ("MÜLK YÖNETİMİ", [
+            ("🏢", "Daire & Sakin", "daire", daire.render),
+            ("📨", "Talepler", "talep", talep.render),
+            ("💰", "Aidat", "aidat", aidat.render),
+        ]),
+        ("OPERASYON", [
+            ("🛠️", "Arıza Takip", "ariza", ariza.render),
+            ("✅", "Kontroller", "checklist", checklist.render),
+            ("📅", "Bakım Planı", "bakim", bakim_plan.render),
+            ("🔄", "Vardiya", "vardiya", vardiya.render),
+            ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render),
+        ]),
+        ("ENVANTER & TESİS", [
+            ("📦", "Ekipman & Barkod", "ekipman", ekipman.render),
+            ("📋", "Stok", "stok", stok.render),
+            ("⚡", "Sayaç & Gider", "sayac", sayac.render),
+            ("📍", "Lokasyonlar", "lokasyon", lokasyon.render),
+        ]),
+        ("ANALİZ & DENETİM", [
+            ("💸", "Maliyet Paneli", "maliyet", maliyet.render),
+            ("📋", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render),
+            ("🖼️", "Medya Yönetimi", "media", media_yonetim.render),
+        ]),
+        ("YÖNETİM", [
+            ("📝", "Şablonlar", "sablon", sablon.render),
+            ("👥", "Personel", "personel", personel.render),
+            ("👤", "Kullanıcılar", "kullanici", kullanici.render),
+            ("⚙️", "Ayarlar", "ayarlar", ayarlar.render),
+        ]),
     ],
     "Yonetici": [
-        (None, [("🏠", "Ana Sayfa", "ana", ana_sayfa.render), ("📑", "Raporlar", "rapor", rapor.render)]),
-        ("MÜLK YÖNETİMİ", [("🏢", "Daire & Sakin", "daire", daire.render), ("📨", "Talepler", "talep", talep.render), ("💰", "Aidat", "aidat", aidat.render)]),
-        ("OPERASYON", [("🛠️", "Arıza Takip", "ariza", ariza.render), ("✅", "Kontroller", "checklist", checklist.render), ("📅", "Bakım Planı", "bakim", bakim_plan.render), ("🔄", "Vardiya", "vardiya", vardiya.render), ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render)]),
-        ("ENVANTER & TESİS", [("📦", "Ekipman & Barkod", "ekipman", ekipman.render), ("📋", "Stok", "stok", stok.render), ("⚡", "Sayaç & Gider", "sayac", sayac.render), ("📍", "Lokasyonlar", "lokasyon", lokasyon.render)]),
-        ("ANALİZ & DENETİM", [("💸", "Maliyet Paneli", "maliyet", maliyet.render), ("📋", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render), ("🖼️", "Medya Yönetimi", "media", media_yonetim.render)]),
-        ("YÖNETİM", [("📝", "Şablonlar", "sablon", sablon.render), ("👥", "Personel", "personel", personel.render), ("⚙️", "Ayarlar", "ayarlar", ayarlar.render)]),
+        (None, [
+            ("🏠", "Ana Sayfa", "ana", ana_sayfa.render),
+            ("📑", "Raporlar", "rapor", rapor.render),
+        ]),
+        ("MÜLK YÖNETİMİ", [
+            ("🏢", "Daire & Sakin", "daire", daire.render),
+            ("📨", "Talepler", "talep", talep.render),
+            ("💰", "Aidat", "aidat", aidat.render),
+        ]),
+        ("OPERASYON", [
+            ("🛠️", "Arıza Takip", "ariza", ariza.render),
+            ("✅", "Kontroller", "checklist", checklist.render),
+            ("📅", "Bakım Planı", "bakim", bakim_plan.render),
+            ("🔄", "Vardiya", "vardiya", vardiya.render),
+            ("🔁", "Tekrarlı Görevler", "tekrar", tekrar.render),
+        ]),
+        ("ENVANTER & TESİS", [
+            ("📦", "Ekipman & Barkod", "ekipman", ekipman.render),
+            ("📋", "Stok", "stok", stok.render),
+            ("⚡", "Sayaç & Gider", "sayac", sayac.render),
+            ("📍", "Lokasyonlar", "lokasyon", lokasyon.render),
+        ]),
+        ("ANALİZ & DENETİM", [
+            ("💸", "Maliyet Paneli", "maliyet", maliyet.render),
+            ("📋", "Aktivite Günlüğü", "aktivite_log", aktivite_log.render),
+            ("🖼️", "Medya Yönetimi", "media", media_yonetim.render),
+        ]),
+        ("YÖNETİM", [
+            ("📝", "Şablonlar", "sablon", sablon.render),
+            ("👥", "Personel", "personel", personel.render),
+            ("⚙️", "Ayarlar", "ayarlar", ayarlar.render),
+        ]),
     ],
     "Teknisyen": [
         (None, [("🏠", "Ana Sayfa", "ana", ana_sayfa.render)]),
-        ("İŞ EMİRLERİ", [("📨", "Talepler", "talep", talep.render), ("🛠️", "Arıza", "ariza", ariza.render), ("✅", "Kontroller", "checklist", checklist.render), ("📅", "Bakım", "bakim", bakim_plan.render), ("🔁", "Tekrarlı", "tekrar", tekrar.render)]),
-        ("ENVANTER", [("📦", "Ekipman", "ekipman", ekipman.render), ("📋", "Stok", "stok", stok.render)]),
+        ("İŞ EMİRLERİ", [
+            ("📨", "Talepler", "talep", talep.render),
+            ("🛠️", "Arıza", "ariza", ariza.render),
+            ("✅", "Kontroller", "checklist", checklist.render),
+            ("📅", "Bakım", "bakim", bakim_plan.render),
+            ("🔁", "Tekrarlı", "tekrar", tekrar.render),
+        ]),
+        ("ENVANTER", [
+            ("📦", "Ekipman", "ekipman", ekipman.render),
+            ("📋", "Stok", "stok", stok.render),
+        ]),
         ("VARDİYA", [("🔄", "Vardiya Defteri", "vardiya", vardiya.render)]),
     ],
     "Sakin": [
         (None, [("🏠", "Ana Sayfa", "ana", ana_sayfa.render)]),
-        ("HİZMETLER", [("📨", "Talep & Şikayet", "sakin_talep", talep.render), ("💰", "Aidat Borcum", "sakin_aidat", aidat.render)]),
+        ("HİZMETLER", [
+            ("📨", "Talep & Şikayet", "sakin_talep", talep.render),
+            ("💰", "Aidat Borcum", "sakin_aidat", aidat.render),
+        ]),
     ],
 }
 
-sections = MENU_STRUCTURE.get(rol, MENU_STRUCTURE["Sakin"])
+# Yönetici/Yonetici yazım farkını tolere et
+if rol == "Yönetici" and "Yonetici" in MENU_STRUCTURE:
+    sections = MENU_STRUCTURE["Yonetici"]
+else:
+    sections = MENU_STRUCTURE.get(rol, MENU_STRUCTURE["Sakin"])
 
-nav_keys: list[str] = []
-nav_funcs: dict[str, object] = {}
-for _, items in sections:
-    for _, _, key, func in items:
-        nav_keys.append(key)
-        nav_funcs[key] = func
+_nav_keys: list[str] = []
+_nav_funcs: dict[str, object] = {}
+for _sec_label, _items in sections:
+    for _icon, _label, _key, _func in _items:
+        _nav_keys.append(_key)
+        _nav_funcs[_key] = _func
 
-default_key = nav_keys[0] if nav_keys else "ana"
-current_key = st.session_state.get("active_module_key", default_key)
-if current_key not in nav_keys:
-    current_key = default_key
-# ÖNEMLİ FIX: Eski dosyada burası default_key'e set ediliyordu; menü her rerun'da Ana Sayfa'ya dönüyordu.
-st.session_state["active_module_key"] = current_key
+default_key = _nav_keys[0] if _nav_keys else "ana"
+if "active_module_key" not in st.session_state or st.session_state["active_module_key"] not in _nav_keys:
+    st.session_state["active_module_key"] = default_key
+current_key = st.session_state["active_module_key"]
+
 
 with st.sidebar:
     sidebar_brand()
-    sidebar_user_card(u.get("Ad_Soyad", "Admin"), rol)
+    sidebar_user_card(u.get("Ad_Soyad") or u.get("Ad Soyad") or u.get("Kullanıcı") or "Admin Kullanıcı", rol)
     sidebar_status(gs_connected())
     st.sidebar.markdown("---")
 
     for sec_label, items in sections:
         if sec_label:
             nav_section(sec_label)
-        for icon, label, key, _ in items:
-            if nav_item(icon, label, key, key == st.session_state["active_module_key"]):
+        for icon, label, key, _func in items:
+            if nav_item(icon, label, key, key == current_key):
                 st.session_state["active_module_key"] = key
                 st.rerun()
 
@@ -130,7 +203,7 @@ def _notif_count() -> int:
     try:
         da = load_data("ariza")
         if not da.empty and "Durum" in da.columns:
-            n += int(da["Durum"].isin(["Açık", "Devam Ediyor"]).sum())
+            n += int(da["Durum"].isin(["Açık", "Devam Ediyor", "Devam"]).sum())
     except Exception:
         pass
     try:
@@ -144,15 +217,16 @@ def _notif_count() -> int:
 
 top_header(_notif_count() if rol != "Sakin" else 0)
 
-active_key = st.session_state.get("active_module_key", default_key)
-active_func = nav_funcs.get(active_key)
-if active_func is None:
+_active_key = st.session_state.get("active_module_key", default_key)
+_active_func = _nav_funcs.get(_active_key)
+
+if _active_func is None:
     st.error("Modül bulunamadı.")
-elif has_access(active_key) or active_key.startswith("sakin_"):
+elif has_access(_active_key) or _active_key.startswith("sakin_"):
     try:
-        active_func(tarih)
-    except Exception as ex:
-        st.error(f"⚠️ Modül hatası: {ex}")
+        _active_func(tarih)
+    except Exception as exc:
+        st.error(f"⚠️ Modül hatası: {exc}")
         with st.expander("Hata detayı (geliştirici)"):
             st.code(_tb.format_exc())
 else:
