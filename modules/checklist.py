@@ -10,27 +10,36 @@ from barkod import yeni_id
 
 
 def render(secilen_tarih: date):
-    section_header("Günlük Kontroller",
-                   f"{secilen_tarih.strftime('%d.%m.%Y')} — Kontrol formları",
-                   pill="OPERASYON")
+    section_header(
+        "Günlük Kontroller",
+        f"{secilen_tarih.strftime('%d.%m.%Y')} — Kontrol formları",
+        pill="OPERASYON",
+    )
 
-    tab1, tab2, tab3 = st.tabs(["📋 Standart Kontroller", "📝 Şablon ile Doldur", "📊 Özet & Arıza"])
+    # Tabs yerine radio — her zaman çalışır, click sorunu yok
+    sayfa = st.radio(
+        "Görünüm",
+        ["📋 Standart Kontroller", "📝 Şablon ile Doldur", "📊 Özet & Arıza"],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="ck_sayfa",
+    )
+    st.markdown("---")
 
-    with tab1:
+    if sayfa.startswith("📋"):
         _standart_kontroller(secilen_tarih)
-    with tab2:
+    elif sayfa.startswith("📝"):
         _sablon_kontrol(secilen_tarih)
-    with tab3:
+    else:
         _ozet(secilen_tarih)
 
 
-# ── Tab 1: Standart Kontroller ────────────────────────────────────────────────
+# ── 1) Standart Kontroller ────────────────────────────────────────────────────
 def _standart_kontroller(secilen_tarih: date):
     df_check = load_data("checklist")
     df_pers  = load_data("personel")
     pers_listesi = df_pers["Isim"].tolist() if not df_pers.empty else ["Personel Yok"]
 
-    # ── Seçim satırı (tabs yerine selectbox — her zaman çalışır) ──────────────
     col1, col2, col3 = st.columns([2, 3, 2])
     bolum     = col1.selectbox("📂 Bölüm", list(SORU_GRUPLARI.keys()), key="ck_bolum")
     alt_gruplar = list(SORU_GRUPLARI[bolum].keys())
@@ -40,10 +49,11 @@ def _standart_kontroller(secilen_tarih: date):
     sorular   = SORU_GRUPLARI[bolum][alt_grup]
     tarih_str = str(secilen_tarih)
 
-    st.markdown(f"**{bolum} — {alt_grup}** &nbsp; `{len(sorular)} soru`",
-                unsafe_allow_html=True)
+    st.markdown(
+        f"**{bolum} — {alt_grup}** &nbsp; `{len(sorular)} soru`",
+        unsafe_allow_html=True,
+    )
 
-    # Zaten doldurulmuş mu?
     try:
         kayitli = df_check[
             (df_check["Tarih"].astype(str) == tarih_str) &
@@ -54,14 +64,14 @@ def _standart_kontroller(secilen_tarih: date):
         kayitli = pd.DataFrame()
 
     if not kayitli.empty:
-        puan   = pd.to_numeric(kayitli.get("Puan", pd.Series()), errors="coerce").fillna(0).sum()
-        yuzde  = int(puan / len(kayitli) * 100) if len(kayitli) else 0
+        puan  = pd.to_numeric(kayitli.get("Puan", pd.Series()), errors="coerce").fillna(0).sum()
+        yuzde = int(puan / len(kayitli) * 100) if len(kayitli) else 0
         st.success(f"✅ Bu grup bugün tamamlandı — Puan: **%{yuzde}** ({int(puan)}/{len(kayitli)})")
-        st.dataframe(kayitli[["Soru", "Durum", "Aciklama"]],
-                     use_container_width=True, hide_index=True)
-
+        st.dataframe(
+            kayitli[["Soru", "Durum", "Aciklama"]],
+            use_container_width=True, hide_index=True,
+        )
         if st.button("🔄 Yeniden Doldur", key="ck_yeniden"):
-            # Mevcut kayıtları sil, formu tekrar göster
             idx_sil = df_check[
                 (df_check["Tarih"].astype(str) == tarih_str) &
                 (df_check["Bolum"].astype(str) == bolum) &
@@ -72,9 +82,7 @@ def _standart_kontroller(secilen_tarih: date):
             st.rerun()
         return
 
-    # ── Form ──────────────────────────────────────────────────────────────────
     st.caption("💡 Sorun yoksa açıklama yazmadan geçebilirsiniz.")
-    # form key: özel karakterler olmadan
     safe_key = f"ck_{bolum[:4]}_{alt_grup[:8]}_{tarih_str}".replace(" ", "_")
 
     with st.form(key=safe_key):
@@ -85,13 +93,11 @@ def _standart_kontroller(secilen_tarih: date):
             durum = c2.radio(
                 "Durum", ["✅ Tamam", "⚠️ Sorunlu"],
                 key=f"rd_{safe_key}_{idx}",
-                horizontal=True,
-                label_visibility="collapsed",
+                horizontal=True, label_visibility="collapsed",
             )
             not_txt = c3.text_input(
                 "Not", key=f"nt_{safe_key}_{idx}",
-                label_visibility="collapsed",
-                placeholder="açıklama...",
+                label_visibility="collapsed", placeholder="açıklama...",
             )
             durum_temiz = "Tamam" if "Tamam" in durum else "Sorunlu"
             cevaplar.append({
@@ -113,11 +119,14 @@ def _standart_kontroller(secilen_tarih: date):
         df_check = pd.concat([df_check, pd.DataFrame(cevaplar)], ignore_index=True)
         save_data(df_check, "checklist")
         puan = sum(1 for c in cevaplar if c["Durum"] == "Tamam")
-        st.success(f"✅ Kaydedildi! Puan: {puan}/{len(cevaplar)} (%{int(puan/len(cevaplar)*100) if cevaplar else 0})")
+        st.success(
+            f"✅ Kaydedildi! Puan: {puan}/{len(cevaplar)} "
+            f"(%{int(puan/len(cevaplar)*100) if cevaplar else 0})"
+        )
         st.rerun()
 
 
-# ── Tab 2: Şablon ile Doldur ──────────────────────────────────────────────────
+# ── 2) Şablon ile Doldur ──────────────────────────────────────────────────────
 def _sablon_kontrol(secilen_tarih: date):
     df_sbl   = load_data("sablon")
     df_check = load_data("checklist")
@@ -186,11 +195,12 @@ def _sablon_kontrol(secilen_tarih: date):
             f"✅ Bu şablon bugün **{kontrolcu}** tarafından doldurulmuş — "
             f"Puan: **%{yuzde}** ({int(puan)}/{len(zaten_var)})"
         )
-        st.dataframe(zaten_var[["Soru", "Durum", "Aciklama"]],
-                     use_container_width=True, hide_index=True)
+        st.dataframe(
+            zaten_var[["Soru", "Durum", "Aciklama"]],
+            use_container_width=True, hide_index=True,
+        )
         return
 
-    # ── Form ──────────────────────────────────────────────────────────────────
     safe_sbl = str(sec_sbl).replace(" ", "_")[:12]
     with st.form(key=f"sbl_{safe_sbl}_{tarih_str}"):
         cevaplar = []
@@ -236,7 +246,7 @@ def _sablon_kontrol(secilen_tarih: date):
         st.rerun()
 
 
-# ── Tab 3: Özet & Arıza ──────────────────────────────────────────────────────
+# ── 3) Özet & Arıza ──────────────────────────────────────────────────────────
 def _ozet(secilen_tarih: date):
     df   = load_data("checklist")
     u    = current_user() or {}
@@ -272,7 +282,6 @@ def _ozet(secilen_tarih: date):
         ozet = bugun.groupby("Bolum")["Durum"].value_counts().unstack(fill_value=0)
         st.dataframe(ozet, use_container_width=True)
 
-    # Sorunlu → Arıza dönüştürme
     if sorunlu > 0:
         st.markdown("---")
         st.subheader("⚠️ Sorunlu Maddeler → Arıza Kaydı Oluştur")
