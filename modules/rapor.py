@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
@@ -12,6 +12,7 @@ ALL_SHEETS = [
     "stok_hrk", "sayac", "okuma", "gider", "checklist",
     "vardiya", "personel", "lokasyon", "sablon", "tekrar",
     "yorum", "aktivite", "media",
+    "duyuru", "rezervasyon", "ziyaretci", "kargo",
 ]
 
 
@@ -173,7 +174,11 @@ def _sla_maliyet():
                         {"Öncelik": k, "Ort. Süre (saat)": round(sum(v)/len(v), 1), "Adet": len(v)}
                         for k, v in oncelik_sure.items()
                     ])
-                    st.dataframe(ozet, use_container_width=True, hide_index=True)
+                    data_table(
+                        ozet,
+                        [("Öncelik", "Öncelik"), ("Ort. Süre (saat)", "Ort. Süre (saat)"), ("Adet", "Adet")],
+                        priority_cols=["Öncelik"],
+                    )
         else:
             st.caption("Bu dönemde talep yok.")
     else:
@@ -215,7 +220,11 @@ def _sla_maliyet():
     ozet["Malzeme (₺)"] = ozet["Malzeme (₺)"].apply(lambda v: f"{v:,.0f}")
     ozet["İşçilik (₺)"] = ozet["İşçilik (₺)"].apply(lambda v: f"{v:,.0f}")
     ozet["Toplam (₺)"] = ozet["Toplam (₺)"].apply(lambda v: f"{v:,.0f}")
-    st.dataframe(ozet, use_container_width=True, hide_index=True)
+    data_table(
+        ozet,
+        [("Kaynak", "Kaynak"), ("Malzeme (₺)", "Malzeme (₺)"),
+         ("İşçilik (₺)", "İşçilik (₺)"), ("Toplam (₺)", "Toplam (₺)")],
+    )
 
     # Gider kategorileri
     df_g = load_data("gider")
@@ -230,7 +239,7 @@ def _sla_maliyet():
         )
         gider_ozet.columns = ["Kategori", "Tutar (₺)"]
         gider_ozet["Tutar (₺)"] = gider_ozet["Tutar (₺)"].apply(lambda v: f"{v:,.0f}")
-        st.dataframe(gider_ozet, use_container_width=True, hide_index=True)
+        data_table(gider_ozet, [("Kategori", "Kategori"), ("Tutar (₺)", "Tutar (₺)")])
 
 
 # ── Checklist Puan Raporu ─────────────────────────────────────────────────────
@@ -274,7 +283,10 @@ def _checklist_puan():
             lambda g: round(g["Puan"].sum() / len(g) * 100, 1) if len(g) > 0 else 0
         ).reset_index()
         bolum_puan.columns = ["Bölüm", "Puan %"]
-        st.dataframe(bolum_puan.sort_values("Puan %"), use_container_width=True, hide_index=True)
+        data_table(
+            bolum_puan.sort_values("Puan %"),
+            [("Bölüm", "Bölüm"), ("Puan %", "Puan %")],
+        )
 
     # Sorunlu maddeler
     sorunlu = df_f[df_f["Durum"] == "Sorunlu"]
@@ -282,8 +294,14 @@ def _checklist_puan():
         st.markdown(f"#### ⚠️ Sorunlu Maddeler ({len(sorunlu)} adet)")
         show_cols = [c for c in ["Tarih", "Bolum", "Alt_Grup", "Soru", "Aciklama", "Kontrol_Eden"]
                      if c in sorunlu.columns]
-        st.dataframe(sorunlu[show_cols].sort_values("Tarih", ascending=False),
-                     use_container_width=True, hide_index=True)
+        col_labels = {"Tarih": "Tarih", "Bolum": "Bölüm", "Alt_Grup": "Alt Grup",
+                      "Soru": "Soru", "Aciklama": "Açıklama", "Kontrol_Eden": "Kontrol Eden"}
+        data_table(
+            sorunlu[show_cols].sort_values("Tarih", ascending=False),
+            [(c, col_labels.get(c, c)) for c in show_cols],
+            avatar_cols=["Kontrol_Eden"] if "Kontrol_Eden" in show_cols else (),
+            max_text=60,
+        )
 
     # Kontrol eden bazlı
     if "Kontrol_Eden" in df_f.columns:
@@ -292,8 +310,11 @@ def _checklist_puan():
             lambda g: round(g["Puan"].sum() / len(g) * 100, 1) if len(g) > 0 else 0
         ).reset_index()
         ke_puan.columns = ["Personel", "Puan %"]
-        st.dataframe(ke_puan.sort_values("Puan %", ascending=False),
-                     use_container_width=True, hide_index=True)
+        data_table(
+            ke_puan.sort_values("Puan %", ascending=False),
+            [("Personel", "Personel"), ("Puan %", "Puan %")],
+            avatar_cols=["Personel"],
+        )
 
     if st.button("📊 Checklist Raporu Excel", type="primary"):
         x = df_to_excel({

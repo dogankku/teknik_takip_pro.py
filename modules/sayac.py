@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -45,7 +45,12 @@ def _sayac_liste():
     if df.empty:
         st.info("Sayaç eklenmemiş.")
     else:
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        data_table(
+            df,
+            [("Sayac_ID", "ID"), ("Tip", "Tip"), ("Lokasyon", "Lokasyon"),
+             ("Daire_ID", "Daire"), ("Birim_Fiyat", "Birim Fiyat"), ("Aktif", "Durum")],
+            id_cols=["Sayac_ID"], bool_cols=["Aktif"],
+        )
 
 
 def _okuma_gir(secilen_tarih: date):
@@ -88,7 +93,12 @@ def _okuma_gir(secilen_tarih: date):
 
     if not onceki.empty:
         st.subheader("📜 Okuma Geçmişi")
-        st.dataframe(onceki.head(20), use_container_width=True, hide_index=True)
+        data_table(
+            onceki.head(20),
+            [("Okuma_ID", "ID"), ("Tarih", "Tarih"), ("Endeks", "Endeks"),
+             ("Tuketim", "Tüketim"), ("Tutar", "Tutar (₺)")],
+            id_cols=["Okuma_ID"],
+        )
 
 
 def _gider(secilen_tarih: date):
@@ -131,11 +141,17 @@ def _gider(secilen_tarih: date):
     st.subheader("Kategori Dağılımı")
     kat_top = g.groupby("Kategori")["_t"].sum().reset_index().sort_values("_t", ascending=False)
     kat_top.columns = ["Kategori", "Toplam (₺)"]
-    st.dataframe(kat_top, use_container_width=True, hide_index=True)
+    data_table(kat_top, [("Kategori", "Kategori"), ("Toplam (₺)", "Toplam (₺)")])
 
     st.subheader("Detaylı Liste")
-    st.dataframe(g.drop(columns=["_t", "_d"]).sort_values("Tarih", ascending=False),
-                 use_container_width=True, hide_index=True)
+    gider_df = g.drop(columns=["_t", "_d"]).sort_values("Tarih", ascending=False)
+    data_table(
+        gider_df,
+        [("Gider_ID", "ID"), ("Tarih", "Tarih"), ("Kategori", "Kategori"),
+         ("Tutar", "Tutar (₺)"), ("Belge_No", "Belge No"), ("Tedarikci", "Tedarikçi"),
+         ("Aciklama", "Açıklama")],
+        id_cols=["Gider_ID"],
+    )
 
 
 def _tuketim_rapor():
@@ -161,8 +177,17 @@ def _tuketim_rapor():
         Toplam_Tuketim=("_t", "sum"), Toplam_Tutar=("_tu", "sum")
     ).reset_index()
     st.subheader(f"📊 {ay} Tüketim Özeti")
-    st.dataframe(tip_sum, use_container_width=True, hide_index=True)
+    data_table(
+        tip_sum,
+        [("Tip", "Sayaç Tipi"), ("Toplam_Tuketim", "Tüketim"), ("Toplam_Tutar", "Tutar (₺)")],
+    )
 
     st.subheader("Detay")
-    st.dataframe(f.drop(columns=["_t", "_tu", "_d"]).sort_values("Tarih", ascending=False),
-                 use_container_width=True, hide_index=True)
+    det_df = f.drop(columns=["_t", "_tu", "_d"]).sort_values("Tarih", ascending=False)
+    data_table(
+        det_df,
+        [("Okuma_ID", "ID"), ("Sayac_ID", "Sayaç"), ("Tarih", "Tarih"),
+         ("Tip", "Tip"), ("Lokasyon", "Lokasyon"),
+         ("Endeks", "Endeks"), ("Tuketim", "Tüketim"), ("Tutar", "Tutar (₺)")],
+        id_cols=["Okuma_ID"],
+    )

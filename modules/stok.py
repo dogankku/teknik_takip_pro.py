@@ -198,8 +198,12 @@ def _gecmis():
     c2m.metric("Giriş", f"{giris:,.1f}")
     c3m.metric("Çıkış", f"{cikis:,.1f}")
 
-    st.dataframe(df_f.sort_values("Tarih", ascending=False),
-                 use_container_width=True, hide_index=True)
+    data_table(
+        df_f.sort_values("Tarih", ascending=False),
+        [("Hareket_ID", "ID"), ("Stok_ID", "Stok"), ("Tarih", "Tarih"), ("Tip", "Tip"),
+         ("Miktar", "Miktar"), ("Kalan", "Kalan"), ("Aciklama", "Açıklama"), ("Kim", "Kim")],
+        id_cols=["Hareket_ID"], avatar_cols=["Kim"],
+    )
 
 
 def stok_malzeme_kullan(stok_id: str, miktar: float, aciklama: str, kim: str) -> bool:

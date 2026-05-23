@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
@@ -72,12 +72,15 @@ def _borc_durumu():
         g = g[g["Bakiye"] > 0]
     elif sf == "Sadece Ödemiş":
         g = g[g["Bakiye"] <= 0]
-    g = g.sort_values("Bakiye", ascending=False)
-    st.dataframe(
-        g.style.format({"Toplam_Tahakkuk": "{:,.2f} ₺",
-                        "Toplam_Ödeme": "{:,.2f} ₺",
-                        "Bakiye": "{:,.2f} ₺"}),
-        use_container_width=True, hide_index=True,
+    g = g.sort_values("Bakiye", ascending=False).copy()
+    g["Toplam_Tahakkuk"] = g["Toplam_Tahakkuk"].apply(lambda v: f"{v:,.2f} ₺")
+    g["Toplam_Ödeme"] = g["Toplam_Ödeme"].apply(lambda v: f"{v:,.2f} ₺")
+    g["Bakiye"] = g["Bakiye"].apply(lambda v: f"{v:,.2f} ₺")
+    data_table(
+        g,
+        [("Daire_ID", "Daire"), ("Blok", "Blok"), ("Daire_No", "No"),
+         ("Toplam_Tahakkuk", "Tahakkuk"), ("Toplam_Ödeme", "Ödeme"), ("Bakiye", "Bakiye")],
+        id_cols=["Daire_ID"],
     )
 
 
@@ -107,8 +110,12 @@ def _tahakkuk():
             st.rerun()
 
     if not df_th.empty:
-        st.dataframe(df_th.sort_values("Donem", ascending=False),
-                     use_container_width=True, hide_index=True)
+        data_table(
+            df_th.sort_values("Donem", ascending=False),
+            [("Tahakkuk_ID", "ID"), ("Daire_ID", "Daire"), ("Donem", "Dönem"),
+             ("Tutar", "Tutar (₺)"), ("Son_Odeme", "Son Ödeme"), ("Aciklama", "Açıklama")],
+            id_cols=["Tahakkuk_ID"],
+        )
 
 
 def _tahsilat():
@@ -136,8 +143,12 @@ def _tahsilat():
             st.rerun()
 
     if not df_od.empty:
-        st.dataframe(df_od.sort_values("Tarih", ascending=False),
-                     use_container_width=True, hide_index=True)
+        data_table(
+            df_od.sort_values("Tarih", ascending=False),
+            [("Odeme_ID", "ID"), ("Daire_ID", "Daire"), ("Tarih", "Tarih"),
+             ("Tutar", "Tutar (₺)"), ("Yontem", "Yöntem"), ("Aciklama", "Açıklama")],
+            id_cols=["Odeme_ID"],
+        )
 
 
 def _toplu_tahakkuk():
@@ -206,10 +217,18 @@ def _sakin_view():
 
     st.subheader("📝 Tahakkuk Detayı")
     if not m_th.empty:
-        st.dataframe(m_th.sort_values("Donem", ascending=False),
-                     use_container_width=True, hide_index=True)
+        data_table(
+            m_th.sort_values("Donem", ascending=False),
+            [("Tahakkuk_ID", "ID"), ("Donem", "Dönem"), ("Tutar", "Tutar (₺)"),
+             ("Son_Odeme", "Son Ödeme"), ("Aciklama", "Açıklama")],
+            id_cols=["Tahakkuk_ID"],
+        )
 
     st.subheader("💵 Ödeme Geçmişi")
     if not m_od.empty:
-        st.dataframe(m_od.sort_values("Tarih", ascending=False),
-                     use_container_width=True, hide_index=True)
+        data_table(
+            m_od.sort_values("Tarih", ascending=False),
+            [("Odeme_ID", "ID"), ("Tarih", "Tarih"), ("Tutar", "Tutar (₺)"),
+             ("Yontem", "Yöntem"), ("Aciklama", "Açıklama")],
+            id_cols=["Odeme_ID"],
+        )

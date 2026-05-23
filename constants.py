@@ -31,6 +31,11 @@ SHEETS = {
     "media":      "Medya",
     "lokasyon":   "Lokasyonlar",
     "tekrar":     "TekrarliGorevler",
+    # ── Yeni modüller (v2) ───────────────────────────────────────────────────
+    "duyuru":     "Duyurular",
+    "rezervasyon":"Rezervasyonlar",
+    "ziyaretci":  "Ziyaretciler",
+    "kargo":      "Kargolar",
 }
 
 COLS = {
@@ -59,6 +64,11 @@ COLS = {
     "media":      ["Media_ID", "Parent_Tip", "Parent_ID", "Dosya_Adi", "Mime", "Boyut", "Base64", "Yukleme_Tarihi", "Yukleyen"],
     "lokasyon":   ["Lokasyon_ID", "Ana_Lokasyon", "Ad", "Tip", "Adres", "Notlar"],
     "tekrar":     ["Tekrar_ID", "Baslik", "Aciklama", "Hedef_Tip", "Periyot_Gun", "Sonraki_Tarih", "Sorumlu", "Lokasyon_ID", "Sablon_ID", "Aktif", "Son_Olusturma"],
+    # ── Yeni modüller (v2) ───────────────────────────────────────────────────
+    "duyuru":     ["Duyuru_ID", "Tarih", "Baslik", "Tip", "Hedef_Grup", "Icerik", "Son_Gecerlilik", "Olusturan", "Aktif"],
+    "rezervasyon":["Rezervasyon_ID", "Tarih", "Saat", "Alan", "Daire_ID", "Talep_Eden", "Katilimci", "Notlar", "Durum", "Olusturma"],
+    "ziyaretci":  ["Ziyaretci_ID", "Tarih", "Giris_Saati", "Cikis_Saati", "Isim", "Tip", "Daire_ID", "Plaka", "Notlar", "Kaydeden"],
+    "kargo":      ["Kargo_ID", "Gelis_Tarihi", "Firma", "Alici_Daire", "Alici_Isim", "Takip_No", "Notlar", "Durum", "Teslim_Tarihi", "Teslim_Alan", "Kaydeden"],
 }
 
 ROLLER = ["Admin", "Yonetici", "Teknisyen", "Sakin"]
@@ -68,10 +78,12 @@ YETKI = {
     "Admin":     "*",  # tüm modüller
     "Yonetici":  ["ana", "rapor", "checklist", "ariza", "ekipman", "daire", "talep",
                   "bakim", "aidat", "stok", "sayac", "vardiya", "personel", "ayarlar",
-                  "lokasyon", "sablon", "tekrar"],
+                  "lokasyon", "sablon", "tekrar", "maliyet", "aktivite_log", "media",
+                  "duyuru", "rezervasyon", "ziyaretci"],
     "Teknisyen": ["ana", "checklist", "ariza", "ekipman", "talep", "bakim", "stok",
-                  "vardiya", "tekrar"],
-    "Sakin":     ["ana", "sakin_talep", "sakin_aidat", "sakin_daire"],
+                  "vardiya", "tekrar", "ziyaretci"],
+    "Sakin":     ["ana", "sakin_talep", "sakin_aidat", "sakin_daire",
+                  "sakin_duyuru", "sakin_rezervasyon", "sakin_ziyaretci"],
 }
 
 # Talep öncelik → SLA (saat)

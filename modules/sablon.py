@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 from db import load_data, save_data
-from style import section_header
+from style import section_header, data_table
 from auth import current_user
 from barkod import yeni_id
 
@@ -31,9 +31,11 @@ def render(secilen_tarih: date):
             sec_kat = st.selectbox("Kategori", ["Tümü"] + sorted(kat_list))
             g = df if sec_kat == "Tümü" else df[df["Kategori"] == sec_kat]
 
-            st.dataframe(
-                g[["Sablon_ID", "Ad", "Kategori", "Aciklama", "Olusturan", "Tarih"]],
-                use_container_width=True, hide_index=True,
+            data_table(
+                g,
+                [("Sablon_ID", "ID"), ("Ad", "Şablon Adı"), ("Kategori", "Kategori"),
+                 ("Aciklama", "Açıklama"), ("Olusturan", "Oluşturan"), ("Tarih", "Tarih")],
+                id_cols=["Sablon_ID"], max_text=60,
             )
 
             st.divider()
