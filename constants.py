@@ -31,13 +31,12 @@ SHEETS = {
     "media":      "Medya",
     "lokasyon":   "Lokasyonlar",
     "tekrar":     "TekrarliGorevler",
-    # ── Yeni modüller (v2) ───────────────────────────────────────────────────
-    "duyuru":     "Duyurular",
-    "rezervasyon":"Rezervasyonlar",
-    "ziyaretci":  "Ziyaretciler",
-    "kargo":      "Kargolar",
-    # ── Yetki & Bildirim ────────────────────────────────────────────────────
-    "yetki_rol":  "YetkiRol",
+    # ── Yeni tablolar ────────────────────────────────────────────────────────
+    "yetki_rol":   "YetkiRol",
+    "duyuru":      "Duyurular",
+    "rezervasyon": "Rezervasyonlar",
+    "ziyaretci":   "Ziyaretciler",
+    "kargo":       "Kargolar",
 }
 
 COLS = {
@@ -66,13 +65,12 @@ COLS = {
     "media":      ["Media_ID", "Parent_Tip", "Parent_ID", "Dosya_Adi", "Mime", "Boyut", "Base64", "Yukleme_Tarihi", "Yukleyen"],
     "lokasyon":   ["Lokasyon_ID", "Ana_Lokasyon", "Ad", "Tip", "Adres", "Notlar"],
     "tekrar":     ["Tekrar_ID", "Baslik", "Aciklama", "Hedef_Tip", "Periyot_Gun", "Sonraki_Tarih", "Sorumlu", "Lokasyon_ID", "Sablon_ID", "Aktif", "Son_Olusturma"],
-    # ── Yeni modüller (v2) ───────────────────────────────────────────────────
-    "duyuru":     ["Duyuru_ID", "Tarih", "Baslik", "Tip", "Hedef_Grup", "Icerik", "Son_Gecerlilik", "Olusturan", "Aktif"],
-    "rezervasyon":["Rezervasyon_ID", "Tarih", "Saat", "Alan", "Daire_ID", "Talep_Eden", "Katilimci", "Notlar", "Durum", "Olusturma"],
-    "ziyaretci":  ["Ziyaretci_ID", "Tarih", "Giris_Saati", "Cikis_Saati", "Isim", "Tip", "Daire_ID", "Plaka", "Notlar", "Kaydeden"],
-    "kargo":      ["Kargo_ID", "Gelis_Tarihi", "Firma", "Alici_Daire", "Alici_Isim", "Takip_No", "Notlar", "Durum", "Teslim_Tarihi", "Teslim_Alan", "Kaydeden"],
-    # ── Yetki & Bildirim ────────────────────────────────────────────────────
+    # ── Yeni modüller (Yetki/Duyuru/Rezervasyon/Ziyaretçi) ──────────────────
     "yetki_rol":  ["Rol", "Modul_JSON"],
+    "duyuru":     ["Duyuru_ID", "Baslik", "Icerik", "Tip", "Hedef", "Aktif", "Olusturan", "Tarih", "Son_Tarih"],
+    "rezervasyon":["Rezervasyon_ID", "Tarih", "Saat", "Alan", "Daire_ID", "Talep_Eden", "Katilimci", "Notlar", "Durum", "Olusturma"],
+    "ziyaretci":  ["Ziyaret_ID", "Daire_ID", "Ziyaretci_Adi", "Giris_Saati", "Cikis_Saati", "Amac", "Plaka", "Kaydeden", "Tarih"],
+    "kargo":      ["Kargo_ID", "Daire_ID", "Firma", "Takip_No", "Gelis_Tarihi", "Teslim_Tarihi", "Durum", "Notlar"],
 }
 
 ROLLER = ["Admin", "Yonetici", "Teknisyen", "Sakin"]
@@ -88,6 +86,34 @@ YETKI = {
                   "vardiya", "tekrar", "ziyaretci"],
     "Sakin":     ["ana", "sakin_talep", "sakin_aidat", "sakin_daire",
                   "sakin_duyuru", "sakin_rezervasyon", "sakin_ziyaretci"],
+}
+
+# Tüm modül listesi (Yetki yönetimi UI için)
+ALL_MODULES: dict[str, str] = {
+    "ana":          "🏠 Ana Sayfa",
+    "rapor":        "📑 Raporlar",
+    "daire":        "🏢 Daire & Sakin",
+    "talep":        "📨 Talepler",
+    "aidat":        "💰 Aidat",
+    "ariza":        "🛠️ Arıza Takip",
+    "checklist":    "✅ Kontroller",
+    "bakim":        "📅 Bakım Planı",
+    "vardiya":      "🔄 Vardiya",
+    "tekrar":       "🔁 Tekrarlı Görevler",
+    "ekipman":      "📦 Ekipman",
+    "stok":         "📋 Stok",
+    "sayac":        "⚡ Sayaç & Gider",
+    "lokasyon":     "📍 Lokasyonlar",
+    "maliyet":      "💸 Maliyet Paneli",
+    "aktivite_log": "📋 Aktivite Günlüğü",
+    "media":        "🖼️ Medya Yönetimi",
+    "duyuru":       "📢 Duyurular",
+    "rezervasyon":  "📅 Rezervasyon",
+    "ziyaretci":    "👥 Ziyaretçi & Kargo",
+    "sablon":       "📝 Şablonlar",
+    "personel":     "👥 Personel",
+    "kullanici":    "👤 Kullanıcılar",
+    "ayarlar":      "⚙️ Ayarlar",
 }
 
 # Talep öncelik → SLA (saat)
@@ -116,34 +142,6 @@ STOK_KATEGORI = [
 ]
 
 TALEP_KATEGORI = ["Elektrik", "Mekanik", "Tesisat", "Temizlik", "Asansör", "Bahçe", "Genel", "Şikayet"]
-
-# Tüm modüllerin anahtar → görünen adı
-ALL_MODULES: dict[str, str] = {
-    "ana":          "🏠 Ana Sayfa",
-    "rapor":        "📑 Raporlar",
-    "daire":        "🏢 Daire & Sakin",
-    "talep":        "📨 Talepler",
-    "aidat":        "💰 Aidat",
-    "ariza":        "🛠️ Arıza Takip",
-    "checklist":    "✅ Kontroller",
-    "bakim":        "📅 Bakım Planı",
-    "vardiya":      "🔄 Vardiya",
-    "tekrar":       "🔁 Tekrarlı Görevler",
-    "ekipman":      "📦 Ekipman",
-    "stok":         "📋 Stok",
-    "sayac":        "⚡ Sayaç & Gider",
-    "lokasyon":     "📍 Lokasyonlar",
-    "maliyet":      "💸 Maliyet Paneli",
-    "aktivite_log": "📋 Aktivite Günlüğü",
-    "media":        "🖼️ Medya Yönetimi",
-    "duyuru":       "📢 Duyurular",
-    "rezervasyon":  "📅 Rezervasyon",
-    "ziyaretci":    "👥 Ziyaretçi & Kargo",
-    "sablon":       "📝 Şablonlar",
-    "personel":     "👥 Personel",
-    "kullanici":    "👤 Kullanıcılar",
-    "ayarlar":      "⚙️ Ayarlar",
-}
 
 SORU_GRUPLARI = {
     "Elektrik": {

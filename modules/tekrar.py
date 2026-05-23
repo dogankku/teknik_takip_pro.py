@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 from db import load_data, save_data
-from style import section_header
+from style import section_header, data_table
 from auth import current_user
 from barkod import yeni_id
 from constants import BAKIM_PERIYOT
@@ -44,9 +44,12 @@ def render(secilen_tarih: date):
             ]
             if not vadesi_gecen.empty:
                 st.error(f"⚠️ **{len(vadesi_gecen)} görev** bugün veya daha önce yapılması gerekirdi!")
-                st.dataframe(
-                    vadesi_gecen[["Baslik", "Hedef_Tip", "Periyot_Gun", "Sonraki_Tarih", "Sorumlu"]],
-                    use_container_width=True, hide_index=True,
+                data_table(
+                    vadesi_gecen,
+                    [("Baslik", "Başlık"), ("Hedef_Tip", "Tip"),
+                     ("Periyot_Gun", "Periyot"), ("Sonraki_Tarih", "Sonraki"),
+                     ("Sorumlu", "Sorumlu")],
+                    avatar_cols=["Sorumlu"], max_text=60,
                 )
                 if st.button("✅ Vadesi Geçenleri Yenile (Sonraki Tarihe İlerlet)"):
                     for idx, r in vadesi_gecen.iterrows():
@@ -67,9 +70,11 @@ def render(secilen_tarih: date):
             elif aktif_f == "Pasif":
                 g = g[~g["Aktif"].astype(str).isin(["True", "1", "true"])]
 
-            st.dataframe(
-                g[["Baslik", "Hedef_Tip", "Periyot_Gun", "Sonraki_Tarih", "Sorumlu", "Aktif"]],
-                use_container_width=True, hide_index=True,
+            data_table(
+                g,
+                [("Baslik", "Başlık"), ("Hedef_Tip", "Tip"), ("Periyot_Gun", "Periyot"),
+                 ("Sonraki_Tarih", "Sonraki"), ("Sorumlu", "Sorumlu"), ("Aktif", "Durum")],
+                avatar_cols=["Sorumlu"], bool_cols=["Aktif"], max_text=60,
             )
 
             st.divider()

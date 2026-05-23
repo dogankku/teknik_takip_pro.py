@@ -1,258 +1,79 @@
-import json
-import streamlit as st
+from __future__ import annotations
+from datetime import date
 import pandas as pd
-from datetime import date, datetime
-from db import load_data, save_data
+import streamlit as st
 from constants import SORU_GRUPLARI
-from style import section_header
+from db import load_data, save_data
 from auth import current_user
-from barkod import yeni_id
-
+from style import section_header, data_table, kpi_card, card
+try:
+    from aktivite_helper import log_ekle
+except Exception:
+    def log_ekle(*a, **k): pass
 
 def render(secilen_tarih: date):
-    section_header("Günlük Kontroller",
-                   f"{secilen_tarih.strftime('%d.%m.%Y')} - Kontrol formları",
-                   pill="OPERASYON")
+    section_header('Günlük Kontroller', f'{secilen_tarih.strftime("%d.%m.%Y")} — Kontrol formları', pill='OPERASYON')
+    mode = st.radio('Görünüm', ['📋 Standart Kontroller','📝 Şablon ile Doldur','📊 Özet & Arıza'], horizontal=True, label_visibility='collapsed')
+    st.divider()
+    if mode.startswith('📋'):
+        _standard(secilen_tarih)
+    elif mode.startswith('📝'):
+        _template(secilen_tarih)
+    else:
+        _summary(secilen_tarih)
 
-    tabs = st.tabs(["📋 Standart Kontroller", "📝 Şablon ile Doldur", "📊 Özet & Arıza"])
-
-    with tabs[0]:
-        _standart_kontroller(secilen_tarih)
-    with tabs[1]:
-        _sablon_kontrol(secilen_tarih)
-    with tabs[2]:
-        _ozet(secilen_tarih)
-
-
-def _standart_kontroller(secilen_tarih: date):
-    df_check = load_data("checklist")
-    df_pers = load_data("personel")
-    personel_listesi = df_pers["Isim"].tolist() if not df_pers.empty else ["Personel Yok"]
-
-    bolum_tabs = st.tabs(list(SORU_GRUPLARI.keys()))
-
-    for i, bolum in enumerate(SORU_GRUPLARI.keys()):
-        with bolum_tabs[i]:
-            st.subheader(f"📋 {bolum} Kontrol Formu")
-            cp, _ = st.columns([1, 3])
-            kontrolcu = cp.selectbox("Kontrol Eden", personel_listesi, key=f"user_{bolum}")
-
-            for alt_grup, sorular in SORU_GRUPLARI[bolum].items():
-                with st.expander(f"📍 {alt_grup} ({len(sorular)} soru)", expanded=False):
-                    tarih_str = str(secilen_tarih)
-                    try:
-                        kayitli = df_check[
-                            (df_check["Tarih"] == tarih_str)
-                            & (df_check["Bolum"] == bolum)
-                            & (df_check["Alt_Grup"] == alt_grup)
-                        ]
-                    except KeyError:
-                        kayitli = pd.DataFrame()
-
-                    if not kayitli.empty:
-                        puan_col = kayitli.get("Puan", pd.Series())
-                        toplam_puan = pd.to_numeric(puan_col, errors="coerce").fillna(0).sum()
-                        max_puan = len(kayitli)
-                        yuzde = int(toplam_puan / max_puan * 100) if max_puan else 0
-                        st.success(f"✅ Bu grup tamamlandı — Puan: {yuzde}%")
-                        st.dataframe(kayitli[["Soru", "Durum", "Aciklama"]],
-                                     use_container_width=True, hide_index=True)
-                    else:
-                        with st.form(f"form_{bolum}_{alt_grup}"):
-                            st.caption("💡 Sorun yoksa açıklama yazmadan geçebilirsiniz.")
-                            cevaplar = []
-                            for idx, soru in enumerate(sorular):
-                                c1, c2, c3 = st.columns([6, 2, 3])
-                                c1.write(soru)
-                                durum = c2.radio("D", ["Tamam", "Sorunlu"],
-                                                 key=f"rd_{bolum}_{alt_grup}_{idx}",
-                                                 horizontal=True, label_visibility="collapsed")
-                                not_txt = c3.text_input("Not", key=f"nt_{bolum}_{alt_grup}_{idx}",
-                                                        label_visibility="collapsed")
-                                cevaplar.append({
-                                    "Tarih": tarih_str, "Bolum": bolum, "Alt_Grup": alt_grup,
-                                    "Soru": soru, "Durum": durum, "Aciklama": not_txt,
-                                    "Kontrol_Eden": kontrolcu,
-                                    "Puan": 1 if durum == "Tamam" else 0,
-                                    "Sablon_ID": "", "Lokasyon_ID": "",
-                                })
-                                st.divider()
-
-                            if st.form_submit_button(f"💾 {alt_grup} Kaydet", type="primary"):
-                                df_check = pd.concat([df_check, pd.DataFrame(cevaplar)],
-                                                     ignore_index=True)
-                                save_data(df_check, "checklist")
-                                st.success("Kaydedildi!")
-                                st.rerun()
-
-
-def _sablon_kontrol(secilen_tarih: date):
-    df_sbl = load_data("sablon")
-    df_check = load_data("checklist")
-    df_pers = load_data("personel")
-    df_lok = load_data("lokasyon")
-
-    if df_sbl.empty:
-        st.info("Henüz şablon oluşturulmamış.")
-        return
-
-    pers = df_pers["Isim"].tolist() if not df_pers.empty else ["Personel Yok"]
-
-    lok_opts = ["—"]
-    lok_id_map = {}
-    if not df_lok.empty:
-        for _, r in df_lok.iterrows():
-            label = f"{r.get('Ana_Lokasyon','')} → {r.get('Ad','')}"
-            lok_opts.append(label)
-            lok_id_map[label] = r.get("Lokasyon_ID", "")
-
-    c1, c2, c3 = st.columns(3)
-    sec_sbl = c1.selectbox("Şablon seç", df_sbl["Sablon_ID"].tolist(),
-                            format_func=lambda x: df_sbl[df_sbl["Sablon_ID"] == x]["Ad"].values[0]
-                            if x in df_sbl["Sablon_ID"].values else x)
-    kontrolcu = c2.selectbox("Kontrol Eden", pers, key="sbl_pers")
-    lok_sec = c3.selectbox("Lokasyon", lok_opts, key="sbl_lok")
-
-    row_sbl = df_sbl[df_sbl["Sablon_ID"] == sec_sbl].iloc[0]
-    sorular_raw = row_sbl.get("Sorular_JSON", "[]")
-    try:
-        sorular = json.loads(str(sorular_raw)) if sorular_raw else []
-    except Exception:
-        sorular = []
-
-    if not sorular:
-        st.warning("Bu şablonda soru yok.")
-        return
-
-    puanlama = bool(row_sbl.get("Puanlama_Aktif", False))
-    st.markdown(f"**{row_sbl.get('Ad','')}** — {len(sorular)} soru | Puanlama: {'✅' if puanlama else '❌'}")
-
-    tarih_str = str(secilen_tarih)
-    zaten_var = df_check[
-        (df_check["Tarih"] == tarih_str) &
-        (df_check["Sablon_ID"].astype(str) == str(sec_sbl)) &
-        (df_check["Kontrol_Eden"].astype(str) == kontrolcu)
-    ] if not df_check.empty else pd.DataFrame()
-
-    if not zaten_var.empty:
-        puan_col = zaten_var.get("Puan", pd.Series())
-        toplam = pd.to_numeric(puan_col, errors="coerce").fillna(0).sum()
-        yuzde = int(toplam / len(zaten_var) * 100) if len(zaten_var) else 0
-        st.success(f"✅ Bu şablon bugün zaten doldurulmuş — Puan: **{yuzde}%** ({int(toplam)}/{len(zaten_var)})")
-        st.dataframe(zaten_var[["Soru", "Durum", "Aciklama"]], use_container_width=True, hide_index=True)
-        return
-
-    with st.form(f"sbl_form_{sec_sbl}"):
+def _standard(secilen_tarih: date):
+    df = load_data('checklist')
+    df_p = load_data('personel')
+    kontrol_edenler = df_p['Isim'].dropna().astype(str).tolist() if not df_p.empty and 'Isim' in df_p.columns else ['Ahmet Yılmaz','Mehmet Kaya','Hasan Demir']
+    c1,c2,c3 = st.columns([1,2,1.2])
+    bolum = c1.selectbox('📂 Bölüm', list(SORU_GRUPLARI.keys()))
+    alt_gruplar = list(SORU_GRUPLARI.get(bolum, {}).keys())
+    alt = c2.selectbox('📍 Alt Grup', alt_gruplar)
+    kontrol_eden = c3.selectbox('👤 Kontrol Eden', kontrol_edenler)
+    sorular = SORU_GRUPLARI.get(bolum, {}).get(alt, [])
+    st.markdown(f'### {bolum} — {alt} ` {len(sorular)} soru `')
+    st.caption('💡 Sorun yoksa açıklama yazmadan geçebilirsiniz. Sorunlu işaretlenenler açıklama ile arıza takibine aktarılabilir.')
+    st.markdown('<div class="form-card">', unsafe_allow_html=True)
+    with st.form(f'check_{bolum}_{alt}_{secilen_tarih}'):
         cevaplar = []
-        for idx, soru in enumerate(sorular):
-            c1, c2, c3 = st.columns([6, 2, 3])
-            c1.write(f"{idx+1}. {soru}")
-            durum = c2.radio("D", ["Tamam", "Sorunlu"],
-                             key=f"srd_{sec_sbl}_{idx}",
-                             horizontal=True, label_visibility="collapsed")
-            not_txt = c3.text_input("Not", key=f"snt_{sec_sbl}_{idx}",
-                                    label_visibility="collapsed")
-            lok_id = lok_id_map.get(lok_sec, "") if lok_sec != "—" else ""
-            cevaplar.append({
-                "Tarih": tarih_str,
-                "Bolum": row_sbl.get("Kategori", ""),
-                "Alt_Grup": row_sbl.get("Ad", ""),
-                "Soru": soru, "Durum": durum, "Aciklama": not_txt,
-                "Kontrol_Eden": kontrolcu,
-                "Puan": 1 if durum == "Tamam" else 0,
-                "Sablon_ID": sec_sbl,
-                "Lokasyon_ID": lok_id,
-            })
+        for i, soru in enumerate(sorular, start=1):
+            st.markdown(f'**{i}. {soru}**')
+            r1,r2 = st.columns([1,2])
+            durum = r1.radio('Durum', ['✅ Tamam','⚠️ Sorunlu'], key=f'durum_{i}_{alt}', horizontal=True, label_visibility='collapsed')
+            aciklama = r2.text_input('Açıklama', key=f'aciklama_{i}_{alt}', placeholder='açıklama...', label_visibility='collapsed')
+            cevaplar.append((soru, 'Sorunlu' if 'Sorunlu' in durum else 'Tamam', aciklama))
             st.divider()
+        if st.form_submit_button(f'💾 {alt.split(".")[0]}. Grup — Kaydet ({len(sorular)} soru)', type='primary', use_container_width=True):
+            rows = []
+            for soru, durum, aciklama in cevaplar:
+                rows.append({'Tarih':str(secilen_tarih),'Bolum':bolum,'Alt_Grup':alt,'Soru':soru,'Durum':durum,'Aciklama':aciklama,'Kontrol_Eden':kontrol_eden,'Puan':100 if durum=='Tamam' else 0,'Sablon_ID':'','Lokasyon_ID':''})
+            if rows:
+                df = pd.concat([df, pd.DataFrame(rows)], ignore_index=True)
+                save_data(df, 'checklist')
+                log_ekle('checklist', f'{bolum}/{alt}', kontrol_eden, 'Kontrol kaydedildi', f'{len(rows)} soru')
+                st.success('Kontrol kaydedildi.'); st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        if st.form_submit_button("💾 Kontrol Listesini Kaydet", type="primary"):
-            df_check = pd.concat([df_check, pd.DataFrame(cevaplar)], ignore_index=True)
-            save_data(df_check, "checklist")
-            puan = sum(1 for c in cevaplar if c["Durum"] == "Tamam")
-            st.success(f"Kaydedildi! Puan: {puan}/{len(cevaplar)} (%{int(puan/len(cevaplar)*100)})")
-            st.rerun()
+def _template(secilen_tarih: date):
+    df_s = load_data('sablon')
+    st.markdown('<div class="form-card">', unsafe_allow_html=True)
+    card('Şablon ile Kontrol', 'Tekrar kullanılabilir denetim / checklist şablonları')
+    if df_s.empty:
+        st.info('Henüz şablon yok. Yönetim > Şablonlar ekranından şablon oluşturabilirsiniz.')
+    else:
+        data_table(df_s, [('Sablon_ID','ID'),('Ad','Şablon'),('Kategori','Kategori'),('Olusturan','Oluşturan'),('Tarih','Tarih'),('Puanlama_Aktif','Puanlama')], id_cols=['Sablon_ID'], bool_cols=['Puanlama_Aktif'])
+    st.markdown('</div>', unsafe_allow_html=True)
 
-
-def _ozet(secilen_tarih: date):
-    df = load_data("checklist")
-    u = current_user() or {}
-    kullanici = u.get("Ad_Soyad", "Sistem")
-    df_p = load_data("personel")
-    pers = df_p["Isim"].tolist() if not df_p.empty else ["-"]
-
-    if df.empty:
-        st.info("Henüz kayıt yok.")
-        return
-
-    tarih_str = str(secilen_tarih)
-    bugun = df[df["Tarih"] == tarih_str]
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Bugün Toplam Soru", len(bugun))
-    tamam = len(bugun[bugun["Durum"] == "Tamam"]) if not bugun.empty else 0
-    sorunlu = len(bugun[bugun["Durum"] == "Sorunlu"]) if not bugun.empty else 0
-    c2.metric("Tamam", tamam)
-    c3.metric("Sorunlu", sorunlu, delta="⚠️" if sorunlu > 0 else None, delta_color="inverse")
-
-    if not bugun.empty and "Bolum" in bugun.columns:
-        st.markdown("---")
-        st.markdown("**Bölüme Göre Bugünkü Durum**")
-        ozet = bugun.groupby("Bolum")["Durum"].value_counts().unstack(fill_value=0)
-        st.dataframe(ozet, use_container_width=True)
-
-    # ── Sorunlu maddeler → Arıza dönüştürme ──────────────────────────────────
-    if not bugun.empty and sorunlu > 0:
-        st.markdown("---")
-        st.subheader("⚠️ Sorunlu Maddeler → Arıza Kaydı Oluştur")
-        sorunlu_df = bugun[bugun["Durum"] == "Sorunlu"].reset_index(drop=True)
-
-        for i, row in sorunlu_df.iterrows():
-            col_s, col_btn = st.columns([4, 1])
-            col_s.markdown(
-                f'<div style="background:#FEF2F2;border-left:3px solid #EF4444;'
-                f'padding:8px 12px;border-radius:4px;">'
-                f'<b>{row.get("Bolum","")}</b> / {row.get("Alt_Grup","")}<br>'
-                f'{row.get("Soru","")}'
-                f'{(" — " + row["Aciklama"]) if row.get("Aciklama") else ""}'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-            btn_key = f"ariza_olustur_{tarih_str}_{i}"
-            created_key = f"ariza_created_{tarih_str}_{i}"
-
-            if st.session_state.get(created_key):
-                col_btn.success("✅ Arıza\noluşturuldu")
-            elif col_btn.button("🛠️ Arıza\nOluştur", key=btn_key):
-                _checklist_to_ariza(row, kullanici, pers)
-                st.session_state[created_key] = True
-                st.rerun()
-
-
-def _checklist_to_ariza(row: pd.Series, kullanici: str, pers: list):
-    from aktivite_helper import log_ekle
-    df_a = load_data("ariza")
-    ariza_id = yeni_id("ARZ")
-    tanim = f"[Checklist] {row.get('Bolum','')} / {row.get('Alt_Grup','')} — {row.get('Soru','')}"
-    if row.get("Aciklama"):
-        tanim += f" | Not: {row['Aciklama']}"
-    sorumlu = row.get("Kontrol_Eden", pers[0] if pers else "")
-    if sorumlu not in pers and pers:
-        sorumlu = pers[0]
-
-    new_row = {
-        "ID": ariza_id,
-        "Tarih": str(date.today()),
-        "Saat": datetime.now().strftime("%H:%M"),
-        "Bolum": row.get("Bolum", "Genel"),
-        "Lokasyon": row.get("Alt_Grup", ""),
-        "Lokasyon_ID": row.get("Lokasyon_ID", ""),
-        "Ariza_Tanimi": tanim,
-        "Sorumlu": sorumlu,
-        "Durum": "Açık",
-        "Kapanis_Tarihi": "",
-        "Sure_Saat": 0, "Malzeme_Maliyet": 0, "Iscilik_Maliyet": 0,
-    }
-    df_a = pd.concat([df_a, pd.DataFrame([new_row])], ignore_index=True)
-    save_data(df_a, "ariza")
-    log_ekle("ariza", ariza_id, kullanici, "Oluşturuldu",
-             f"Checklist'ten otomatik: {row.get('Soru','')[:60]}")
+def _summary(secilen_tarih: date):
+    df = load_data('checklist')
+    today = df[df.get('Tarih','') == str(secilen_tarih)] if not df.empty and 'Tarih' in df.columns else pd.DataFrame()
+    total = len(today); sorunlu = int((today.get('Durum',pd.Series(dtype=str))=='Sorunlu').sum()) if not today.empty else 0
+    score = int(100 - (sorunlu / total * 100)) if total else 0
+    c1,c2,c3,c4 = st.columns(4)
+    with c1: kpi_card('Bugünkü Soru', total, '📋')
+    with c2: kpi_card('Sorunlu', sorunlu, '⚠️')
+    with c3: kpi_card('Skor', f'%{score}', '📊', progress=score)
+    with c4: kpi_card('Kontrol Grubu', today[['Bolum','Alt_Grup']].drop_duplicates().shape[0] if not today.empty else 0, '✅')
+    st.write('')
+    data_table(today, [('Tarih','Tarih'),('Bolum','Bölüm'),('Alt_Grup','Alt Grup'),('Soru','Soru'),('Durum','Durum'),('Aciklama','Açıklama'),('Kontrol_Eden','Kontrol Eden')], status_cols=['Durum'], avatar_cols=['Kontrol_Eden'], empty_msg='Bugün kontrol kaydı yok.')

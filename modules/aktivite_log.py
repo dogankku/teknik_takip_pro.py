@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 from db import load_data
-from style import section_header, data_table
+from style import section_header
 
 
 def render(secilen_tarih: date):
@@ -89,13 +89,4 @@ def render(secilen_tarih: date):
     st.markdown("**Ham Tablo**")
     show_cols = [c for c in ["Tarih", "Saat", "Parent_Tip", "Parent_ID",
                               "Kullanici", "Aksiyon", "Detay"] if c in g.columns]
-    col_labels = {
-        "Tarih": "Tarih", "Saat": "Saat", "Parent_Tip": "Tip", "Parent_ID": "ID",
-        "Kullanici": "Kullanıcı", "Aksiyon": "Aksiyon", "Detay": "Detay",
-    }
-    data_table(
-        g[show_cols],
-        [(c, col_labels.get(c, c)) for c in show_cols],
-        avatar_cols=["Kullanici"] if "Kullanici" in show_cols else (),
-        max_text=60,
-    )
+    st.dataframe(g[show_cols], use_container_width=True, hide_index=True)

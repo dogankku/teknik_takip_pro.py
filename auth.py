@@ -1,6 +1,7 @@
-"""Kullanıcı yönetimi, parola hash, dinamik RBAC."""
+"""Kullanıcı yönetimi, parola hash, RBAC."""
 from __future__ import annotations
-import hashlib, json
+import hashlib
+import json
 import streamlit as st
 from datetime import datetime
 import pandas as pd
@@ -67,18 +68,16 @@ def is_logged_in() -> bool:
 
 
 def has_access(modul_key: str) -> bool:
-    """Dinamik RBAC: Admin → her şey; diğerleri için 3 katmanlı kontrol."""
+    """3 katlı RBAC: Admin bypass → kullanıcı override → DB rol tablosu → sabit fallback."""
     rol = current_role()
     if not rol:
         return False
-
-    # Admin her şeye erişir
     if rol == "Admin":
         return True
 
     u = current_user() or {}
 
-    # 1. Kullanıcı bazlı KAPATMA override (öncelikli ret)
+    # Katman 1: Kullanıcı bazlı engel
     try:
         kapali = json.loads(str(u.get("Kapali_Modul", "") or "[]"))
         if modul_key in kapali:
@@ -86,7 +85,7 @@ def has_access(modul_key: str) -> bool:
     except Exception:
         pass
 
-    # 2. Kullanıcı bazlı AÇMA override
+    # Katman 2: Kullanıcı bazlı ek izin
     try:
         ekstra = json.loads(str(u.get("Ekstra_Modul", "") or "[]"))
         if modul_key in ekstra:
@@ -94,21 +93,20 @@ def has_access(modul_key: str) -> bool:
     except Exception:
         pass
 
-    # 3. Dinamik rol yetkileri (Google Sheets / CSV'den)
+    # Katman 3: Dinamik rol tablosu (Google Sheets / CSV)
     try:
         df_yr = load_data("yetki_rol")
         if not df_yr.empty:
             row = df_yr[df_yr["Rol"].astype(str) == str(rol)]
             if not row.empty:
-                modul_json = str(row.iloc[0].get("Modul_JSON", "[]") or "[]")
-                modul_list = json.loads(modul_json)
+                modul_list = json.loads(str(row.iloc[0].get("Modul_JSON", "[]") or "[]"))
                 if modul_list == ["*"]:
                     return True
                 return modul_key in modul_list
     except Exception:
         pass
 
-    # 4. Sabit YETKI (constants.py fallback)
+    # Katman 4: Sabit fallback
     yetki = YETKI.get(rol, [])
     if yetki == "*":
         return True

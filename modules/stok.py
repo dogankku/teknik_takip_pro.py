@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -49,10 +49,12 @@ def _liste():
     toplam_deger = (df["_m"] * pd.to_numeric(df.get("Birim_Fiyat", 0), errors="coerce").fillna(0)).sum()
     c3m.metric("Stok Değeri", f"{toplam_deger:,.0f} ₺")
 
-    st.dataframe(
-        g[["Stok_ID", "Urun_Adi", "Kategori", "Mevcut", "Kritik", "Birim",
-           "Depo_Yeri", "Birim_Fiyat", "Uyarı"]],
-        use_container_width=True, hide_index=True,
+    data_table(
+        g,
+        [("Stok_ID", "ID"), ("Urun_Adi", "Ürün"), ("Kategori", "Kategori"),
+         ("Mevcut", "Mevcut"), ("Kritik", "Kritik"), ("Birim", "Birim"),
+         ("Depo_Yeri", "Depo"), ("Birim_Fiyat", "Birim ₺"), ("Uyarı", "Durum")],
+        id_cols=["Stok_ID"], max_text=40,
     )
 
 
@@ -178,9 +180,9 @@ def _hareket():
                         if tetikler.get("stok_kritik", True):
                             from bildirim_helper import bildirim_gonder
                             bildirim_gonder(
-                                baslik=f"⚠️ Kritik Stok: {row.get('Urun_Adi',sid)}",
-                                icerik=(f"Ürün: {row.get('Urun_Adi',sid)} ({sid})\n"
-                                        f"Mevcut: {yeni_mevcut} {row.get('Birim','')}\n"
+                                baslik=f"⚠️ Kritik Stok: {row.get('Urun_Adi', sid)}",
+                                icerik=(f"Ürün: {row.get('Urun_Adi', sid)} ({sid})\n"
+                                        f"Mevcut: {yeni_mevcut} {row.get('Birim', '')}\n"
                                         f"Kritik Seviye: {krt_seviye}\nLütfen sipariş verin."),
                             )
                     except Exception:
@@ -213,12 +215,8 @@ def _gecmis():
     c2m.metric("Giriş", f"{giris:,.1f}")
     c3m.metric("Çıkış", f"{cikis:,.1f}")
 
-    data_table(
-        df_f.sort_values("Tarih", ascending=False),
-        [("Hareket_ID", "ID"), ("Stok_ID", "Stok"), ("Tarih", "Tarih"), ("Tip", "Tip"),
-         ("Miktar", "Miktar"), ("Kalan", "Kalan"), ("Aciklama", "Açıklama"), ("Kim", "Kim")],
-        id_cols=["Hareket_ID"], avatar_cols=["Kim"],
-    )
+    st.dataframe(df_f.sort_values("Tarih", ascending=False),
+                 use_container_width=True, hide_index=True)
 
 
 def stok_malzeme_kullan(stok_id: str, miktar: float, aciklama: str, kim: str) -> bool:
