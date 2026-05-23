@@ -5,7 +5,7 @@ import traceback
 from datetime import date
 import streamlit as st
 
-st.set_page_config(page_title="Teknik Operasyon Sistemi", layout="wide", page_icon="🏢", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Teknik Operasyon Sistemi", layout="wide", page_icon="🏢", initial_sidebar_state="auto")
 
 from style import inject_css, sidebar_brand, sidebar_user_card, sidebar_status, nav_section, nav_item_active, top_header
 from db import gs_connected, load_data

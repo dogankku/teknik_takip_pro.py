@@ -77,58 +77,82 @@ button[kind="primary"], .stButton button[kind="primary"] {{ background:{C['prima
 .metric-split {{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px; }} .mini-stat {{ background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:10px; }} .mini-stat b {{ display:block;font-size:16px;color:#0F172A; }} .mini-stat span {{ color:#64748B;font-size:11px;font-weight:700; }}
 hr.soft {{ border:0;border-top:1px solid #E2E8F0;margin:18px 0; }}
 
-/* ── Mobil hamburger butonu — Streamlit sidebar toggle'ı her zaman göster ── */
+/* ── Streamlit collapsedControl — sidebar kapalıyken sol kenar tab ── */
 [data-testid="collapsedControl"] {{
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
-  z-index: 1100 !important;
+  z-index: 1200 !important;
+  background: {C['primary']} !important;
+  border-radius: 0 12px 12px 0 !important;
+  width: 32px !important;
+  min-height: 56px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 4px 0 12px rgba(99,102,241,.35) !important;
 }}
-button[data-testid="stSidebarNavCollapseIcon"],
-button[kind="header"] {{
-  display: flex !important;
-  visibility: visible !important;
+[data-testid="collapsedControl"] svg {{
+  fill: white !important;
+  stroke: white !important;
+}}
+[data-testid="collapsedControl"] button {{
+  background: transparent !important;
+  border: none !important;
+  color: white !important;
+  width: 100% !important;
+  height: 100% !important;
 }}
 
-/* ── Mobil responsive (≤768px) ────────────────────────────────────────────── */
+/* ── Mobil responsive (≤768px) ─────────────────────────────────────────── */
 @media (max-width: 768px) {{
-  /* Pro topbar'ı mobilde gizle — stHeader hamburger kullanılsın */
+  /* Pro topbar yerine stHeader göster */
   .pro-topbar {{ display: none !important; }}
+  .mob-menu-bar {{ display: none !important; }}
 
-  /* Streamlit header'ı mobilde göster */
+  /* Streamlit header'ı koyu temaya uygun stil ver */
   [data-testid="stHeader"] {{
-    display: flex !important;
-    visibility: visible !important;
-    height: 52px !important;
-    z-index: 1050 !important;
+    background: #0F172A !important;
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    top: 0 !important; left: 0 !important; right: 0 !important;
+    height: 52px !important;
+    z-index: 999 !important;
+    border-bottom: 1px solid #1E293B !important;
+  }}
+  /* Header içindeki buton ikonlarını beyaz yap */
+  [data-testid="stHeader"] button {{
+    color: #CBD5E1 !important;
+  }}
+  [data-testid="stHeader"] button svg,
+  [data-testid="stHeader"] button svg path {{
+    fill: #CBD5E1 !important;
+    stroke: #CBD5E1 !important;
   }}
 
-  /* İçerik alanı padding'i mobile uyarla */
+  /* İçerik alanı padding */
   .block-container {{
     padding-top: 64px !important;
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }}
 
-  /* Sidebar tam genişlik üstte overlay olsun */
+  /* Sidebar mobilde tam overlay */
   section[data-testid="stSidebar"] {{
-    width: 100vw !important;
+    width: 85vw !important;
     max-width: 300px !important;
   }}
 
-  /* Tablo mobilde scroll edilebilir */
+  /* Tablo yatay kaydırma */
   .pro-table-wrap {{
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }}
+  .pro-table {{ font-size: 12px !important; }}
+  .pro-table th, .pro-table td {{ padding: 10px 10px !important; }}
 
-  /* KPI kartlar mobilde daha küçük */
+  /* Boyutlar mobil için küçült */
   .kpi-value {{ font-size: 26px !important; }}
   .page-title {{ font-size: 22px !important; }}
+  .kpi {{ min-height: 100px !important; }}
 }}
 """
 
@@ -140,31 +164,6 @@ def inject_css(): st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)
 def top_header(notif: int = 0):
     b = f'<span class="pro-badge-count">{notif if notif < 100 else "99+"}</span>' if notif else ""
     st.markdown(f'<div class="pro-topbar"><div class="pro-icon-btn">🔔{b}</div><div class="pro-icon-btn">?</div></div>', unsafe_allow_html=True)
-    # Mobil: sidebar açma butonu (küçük ekranlarda görünür, büyükte gizli)
-    st.markdown("""
-    <style>
-    .mob-menu-bar {
-      display: none;
-      position: fixed; top: 0; left: 0; right: 0; z-index: 1050;
-      height: 52px; background: #0F172A;
-      align-items: center; padding: 0 16px; gap: 12px;
-    }
-    .mob-menu-bar span { color: #fff; font-weight: 800; font-size: 15px; flex: 1; }
-    .mob-ham { font-size: 22px; cursor: pointer; background: none; border: none;
-               color: #fff; padding: 6px; border-radius: 8px; }
-    @media (max-width: 768px) {
-      .mob-menu-bar { display: flex !important; }
-    }
-    </style>
-    <div class="mob-menu-bar">
-      <button class="mob-ham" onclick="
-        var sb = window.parent.document.querySelector('[data-testid=stSidebar]');
-        var cc = window.parent.document.querySelector('[data-testid=collapsedControl]');
-        if(cc){ cc.click(); } else if(sb){ sb.style.display = sb.style.display==='none' ? '' : 'none'; }
-      ">☰</button>
-      <span>🏢 Teknik Operasyon</span>
-    </div>
-    """, unsafe_allow_html=True)
 
 def section_header(title: str, subtitle: str = "", icon: str = "", pill: str = ""):
     st.markdown(f'''<div class="page-head"><div><h1 class="page-title">{esc(icon)} {esc(title)}</h1><div class="page-sub">{esc(subtitle)}{f'<span class="pill">{esc(pill)}</span>' if pill else ''}</div></div></div>''', unsafe_allow_html=True)
