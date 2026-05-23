@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta
@@ -59,9 +59,12 @@ def _sakin_talep_view():
             if row.get("Cozum_Notu"):
                 st.success(f"Çözüm: {row['Cozum_Notu']}")
             render_photo_grid("talep", sec, cols_per_row=3)
-        st.dataframe(mine[["Talep_ID", "Tarih", "Kategori", "Baslik", "Oncelik",
-                           "Durum", "Atanan", "Cozum_Notu"]],
-                     use_container_width=True, hide_index=True)
+        data_table(
+            mine,
+            [("Talep_ID", "ID"), ("Tarih", "Tarih"), ("Kategori", "Kategori"),
+             ("Baslik", "Başlık"), ("Oncelik", "Öncelik"), ("Durum", "Durum")],
+            status_cols=["Durum"], priority_cols=["Oncelik"], id_cols=["Talep_ID"],
+        )
 
 
 def _yonetim_talep_view(secilen_tarih: date):
@@ -99,9 +102,16 @@ def _yonetim_talep_view(secilen_tarih: date):
             elif df_at != "Tümü":
                 g = g[g["Atanan"] == df_at]
 
-            g = _sla_durum_ekle(g)
-            st.dataframe(g.sort_values("Tarih", ascending=False),
-                         use_container_width=True, hide_index=True)
+            g = _sla_durum_ekle(g).sort_values("Tarih", ascending=False)
+            st.caption(f"{len(g)} talep gösteriliyor")
+            data_table(
+                g,
+                [("Talep_ID", "ID"), ("Tarih", "Tarih"), ("Kategori", "Kategori"),
+                 ("Baslik", "Başlık"), ("Oncelik", "Öncelik"),
+                 ("Atanan", "Atanan"), ("Durum", "Durum")],
+                status_cols=["Durum"], priority_cols=["Oncelik"],
+                avatar_cols=["Atanan"], id_cols=["Talep_ID"],
+            )
 
             st.divider()
             st.subheader("🔍 Talep Detayı")

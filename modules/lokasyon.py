@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 from db import load_data, save_data
-from style import section_header
+from style import section_header, data_table
 from barkod import yeni_id
 
 
@@ -42,8 +42,12 @@ def render(secilen_tarih: date):
             ana_sec = st.selectbox("Ana Lokasyon Filtrele",
                                    ["Tümü"] + sorted(ana_loks))
             g = df if ana_sec == "Tümü" else df[df["Ana_Lokasyon"] == ana_sec]
-            st.dataframe(g[["Lokasyon_ID", "Ana_Lokasyon", "Ad", "Tip", "Notlar"]],
-                         use_container_width=True, hide_index=True)
+            data_table(
+                g,
+                [("Lokasyon_ID", "ID"), ("Ana_Lokasyon", "Ana Lokasyon"),
+                 ("Ad", "Ad"), ("Tip", "Tip"), ("Notlar", "Notlar")],
+                id_cols=["Lokasyon_ID"], max_text=50,
+            )
 
             st.divider()
             st.subheader("✏️ Düzenle / Sil")

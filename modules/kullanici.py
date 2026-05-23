@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -33,7 +33,13 @@ def render(secilen_tarih: date):
             c2.metric("Aktif", aktif_sayi)
             c3.metric("Pasif", len(df) - aktif_sayi)
 
-            st.dataframe(gor, use_container_width=True, hide_index=True)
+            data_table(
+                gor,
+                [("Kullanici_Adi", "Kullanıcı"), ("Ad_Soyad", "Ad Soyad"),
+                 ("Rol", "Rol"), ("Daire_ID", "Daire"), ("Telefon", "Telefon"),
+                 ("Email", "E-posta"), ("Aktif", "Durum")],
+                avatar_cols=["Ad_Soyad"], bool_cols=["Aktif"], max_text=40,
+            )
 
     # ── TAB 1: Yeni Kullanıcı ─────────────────────────────────────────────────
     with tab2:

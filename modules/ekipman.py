@@ -4,7 +4,7 @@ from datetime import date
 from db import load_data, save_data
 from barkod import make_barcode, make_qr, yeni_barkod_id, toplu_barkod_pdf
 from constants import EKIPMAN_KATEGORI
-from style import section_header
+from style import section_header, data_table, status_badge, avatar_chip
 from media import upload_widget, render_photo_grid
 
 
@@ -63,10 +63,13 @@ def _liste(df_e: pd.DataFrame):
     c2m.metric("Arızalı", arizali, delta="⚠️" if arizali > 0 else None, delta_color="inverse")
     c3m.metric("Bakımda", bakimda)
 
-    cols_show = [c for c in ["Barkod_ID", "Ekipman_Adi", "Kategori", "Lokasyon",
-                              "Marka_Model", "Seri_No", "Satin_Alma", "Sonraki_Bakim", "Durum"]
-                 if c in g.columns]
-    st.dataframe(g[cols_show], use_container_width=True, hide_index=True)
+    data_table(
+        g,
+        [("Barkod_ID", "Barkod"), ("Ekipman_Adi", "Ekipman"), ("Kategori", "Kategori"),
+         ("Lokasyon", "Lokasyon"), ("Marka_Model", "Marka/Model"),
+         ("Sonraki_Bakim", "Sonraki Bakım"), ("Durum", "Durum")],
+        status_cols=["Durum"], id_cols=["Barkod_ID"],
+    )
 
     # Arıza geçmişi inline
     if not df_e.empty:
@@ -78,9 +81,11 @@ def _liste(df_e: pd.DataFrame):
             gecmis = df_a[df_a["Ariza_Tanimi"].str.contains(sec_ad, case=False, na=False) |
                           df_a["Lokasyon"].str.contains(sec_ad, case=False, na=False)]
             if not gecmis.empty:
-                st.dataframe(
-                    gecmis[["ID", "Tarih", "Ariza_Tanimi", "Sorumlu", "Durum"]],
-                    use_container_width=True, hide_index=True,
+                data_table(
+                    gecmis,
+                    [("ID", "ID"), ("Tarih", "Tarih"), ("Ariza_Tanimi", "Arıza"),
+                     ("Sorumlu", "Sorumlu"), ("Durum", "Durum")],
+                    status_cols=["Durum"], avatar_cols=["Sorumlu"], id_cols=["ID"],
                 )
             else:
                 st.caption("Bu ekipmana ait arıza kaydı yok.")

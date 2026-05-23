@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
@@ -54,10 +54,13 @@ def _planlar(secilen_tarih: date):
     elif sf == "Yasal Zorunlu":
         g = g[g["Yasal_Zorunlu"].astype(str).str.lower().isin(["evet", "true", "yes"])]
 
-    st.dataframe(
-        g[["Plan_ID", "Baslik", "Ekipman", "Lokasyon", "Periyot_Gun",
-           "Son_Yapilma", "Sonraki_Tarih", "Durum_İşaret", "Sorumlu", "Yasal_Zorunlu"]],
-        use_container_width=True, hide_index=True,
+    data_table(
+        g,
+        [("Plan_ID", "ID"), ("Baslik", "Başlık"), ("Ekipman", "Ekipman"),
+         ("Lokasyon", "Lokasyon"), ("Sonraki_Tarih", "Sonraki"),
+         ("Durum_İşaret", "Vade"), ("Sorumlu", "Sorumlu"), ("Yasal_Zorunlu", "Yasal")],
+        avatar_cols=["Sorumlu"], bool_cols=["Yasal_Zorunlu"], id_cols=["Plan_ID"],
+        max_text=60,
     )
 
     st.divider()

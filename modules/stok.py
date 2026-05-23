@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -49,10 +49,12 @@ def _liste():
     toplam_deger = (df["_m"] * pd.to_numeric(df.get("Birim_Fiyat", 0), errors="coerce").fillna(0)).sum()
     c3m.metric("Stok Değeri", f"{toplam_deger:,.0f} ₺")
 
-    st.dataframe(
-        g[["Stok_ID", "Urun_Adi", "Kategori", "Mevcut", "Kritik", "Birim",
-           "Depo_Yeri", "Birim_Fiyat", "Uyarı"]],
-        use_container_width=True, hide_index=True,
+    data_table(
+        g,
+        [("Stok_ID", "ID"), ("Urun_Adi", "Ürün"), ("Kategori", "Kategori"),
+         ("Mevcut", "Mevcut"), ("Kritik", "Kritik"), ("Birim", "Birim"),
+         ("Depo_Yeri", "Depo"), ("Birim_Fiyat", "Birim ₺"), ("Uyarı", "Durum")],
+        id_cols=["Stok_ID"], max_text=40,
     )
 
 

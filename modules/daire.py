@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime
@@ -60,7 +60,13 @@ def _daire_modul():
     g = df.copy()
     if bf != "Tümü": g = g[g["Blok"].astype(str) == bf]
     if df_dur != "Tümü": g = g[g["Durum"].astype(str) == df_dur]
-    st.dataframe(g, use_container_width=True, hide_index=True)
+    data_table(
+        g,
+        [("Daire_ID", "Daire"), ("Blok", "Blok"), ("Kat", "Kat"),
+         ("Daire_No", "No"), ("M2", "m²"), ("Oda_Tipi", "Oda Tipi"),
+         ("Durum", "Durum"), ("Notlar", "Notlar")],
+        status_cols=["Durum"], id_cols=["Daire_ID"],
+    )
 
     st.divider()
     st.subheader("🔍 Daire Detayı")
@@ -118,8 +124,12 @@ def _daire_detay(daire_id: str, df: pd.DataFrame):
                         (~df_t["Durum"].isin(["Çözüldü", "Kapatıldı"]))]
             if not acik.empty:
                 st.markdown(f"**📨 Açık Talepler ({len(acik)})**")
-                st.dataframe(acik[["Talep_ID", "Tarih", "Baslik", "Oncelik", "Durum"]],
-                             use_container_width=True, hide_index=True)
+                data_table(
+                    acik,
+                    [("Talep_ID", "ID"), ("Tarih", "Tarih"), ("Baslik", "Başlık"),
+                     ("Oncelik", "Öncelik"), ("Durum", "Durum")],
+                    status_cols=["Durum"], priority_cols=["Oncelik"], id_cols=["Talep_ID"],
+                )
 
     with col_edit:
         st.markdown("**✏️ Durum Güncelle**")

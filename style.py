@@ -735,12 +735,20 @@ def top_header(notif: int = 0):
 
 
 _STATUS_MAP = {
+    # Arıza / Talep
     "Açık": "st-acik", "Acik": "st-acik",
     "Devam Ediyor": "st-devam", "Devam": "st-devam",
     "Tamamlandı": "st-kapali", "Tamamlandi": "st-kapali",
     "Kapalı": "st-kapali", "Kapali": "st-kapali", "Çözüldü": "st-kapali",
     "Beklemede": "st-bekle", "Atandı": "st-bekle",
     "İptal": "st-iptal", "İptal Edildi": "st-iptal", "Kapatıldı": "st-iptal",
+    # Ekipman / genel
+    "Aktif": "st-kapali", "Pasif": "st-iptal",
+    "Bakımda": "st-devam", "Arızalı": "st-acik", "Arizali": "st-acik",
+    "Hurdaya Ayrıldı": "st-iptal", "Hurda": "st-iptal",
+    # Daire
+    "Dolu": "st-kapali", "Boş": "st-bekle", "Bos": "st-bekle",
+    "Kira": "st-devam", "Satılık": "st-bekle",
 }
 
 
@@ -750,11 +758,77 @@ def status_badge(durum: str) -> str:
 
 
 def avatar_chip(isim: str) -> str:
-    initials = "".join(w[0].upper() for w in str(isim or "?").split()[:2]) or "?"
+    if not str(isim).strip() or str(isim) in ("-", "nan"):
+        return '<span style="color:#94A3B8">—</span>'
+    initials = "".join(w[0].upper() for w in str(isim).split()[:2]) or "?"
     h = sum(ord(c) for c in str(isim)) % 5
     g = ["#4F46E5", "#0EA5E9", "#14B8A6", "#F59E0B", "#EC4899"][h]
     return (f'<span class="row-avatar" style="background:{g}">{initials}</span>'
             f'<span>{isim}</span>')
+
+
+_PRIORITY_MAP = {
+    "Kritik": ("st-acik", "Kritik"),
+    "Yuksek": ("st-devam", "Yüksek"), "Yüksek": ("st-devam", "Yüksek"),
+    "Normal": ("st-bekle", "Normal"),
+    "Dusuk": ("st-kapali", "Düşük"), "Düşük": ("st-kapali", "Düşük"),
+}
+
+
+def priority_badge(p: str) -> str:
+    cls, lbl = _PRIORITY_MAP.get(str(p).strip(), ("st-bekle", str(p)))
+    return f'<span class="st-badge {cls}">{lbl}</span>'
+
+
+_BOOL_TRUE = {"evet", "true", "1", "aktif", "açık", "var", "yes"}
+
+
+def bool_badge(val, true_lbl: str = "Aktif", false_lbl: str = "Pasif") -> str:
+    s = str(val).strip().lower()
+    if s in _BOOL_TRUE:
+        return f'<span class="st-badge st-kapali">{true_lbl}</span>'
+    return f'<span class="st-badge st-iptal">{false_lbl}</span>'
+
+
+def data_table(df, columns, status_cols=(), priority_cols=(), avatar_cols=(),
+               id_cols=(), bool_cols=(), max_rows: int = 80, max_text: int = 46,
+               empty_msg: str = "Kayıt bulunamadı"):
+    """Renkli rozetli HTML tablo. columns: [(df_col, başlık), ...]"""
+    if df is None or len(df) == 0:
+        st.markdown(
+            f'<div class="panel-card"><div style="text-align:center;'
+            f'color:#94A3B8;padding:28px;font-size:.9rem">{empty_msg}</div></div>',
+            unsafe_allow_html=True,
+        )
+        return
+    head = "".join(f"<th>{h}</th>" for _, h in columns)
+    safe = df.fillna("")
+    body = ""
+    for _, r in safe.head(max_rows).iterrows():
+        cells = ""
+        for col, _ in columns:
+            val = r[col] if col in safe.columns else ""
+            if col in status_cols:
+                cells += f"<td>{status_badge(val)}</td>"
+            elif col in priority_cols:
+                cells += f"<td>{priority_badge(val)}</td>"
+            elif col in bool_cols:
+                cells += f"<td>{bool_badge(val)}</td>"
+            elif col in avatar_cols:
+                cells += f"<td>{avatar_chip(val)}</td>"
+            elif col in id_cols:
+                cells += f"<td class='id-cell'>{val}</td>"
+            else:
+                s = str(val)
+                if len(s) > max_text:
+                    s = s[:max_text - 1] + "…"
+                cells += f"<td>{s}</td>"
+        body += f"<tr>{cells}</tr>"
+    st.markdown(
+        f'<div class="panel-card"><table class="data-table">'
+        f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def hero_banner(title: str, subtitle: str = "", badge: str = "", icon: str = "✨",

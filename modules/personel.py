@@ -1,4 +1,4 @@
-from style import section_header
+from style import section_header, data_table
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -34,9 +34,12 @@ def render(secilen_tarih: date):
             if aktif_f and "Aktif" in g.columns:
                 g = g[g["Aktif"].astype(str).isin(["Evet", "True", "1", "true"])]
 
-            show_cols = [c for c in ["Isim", "Gorev", "Telefon", "Email", "Sertifikalar", "Aktif"]
-                         if c in g.columns]
-            st.dataframe(g[show_cols], use_container_width=True, hide_index=True)
+            data_table(
+                g,
+                [("Isim", "İsim"), ("Gorev", "Görev"), ("Telefon", "Telefon"),
+                 ("Email", "E-posta"), ("Sertifikalar", "Sertifikalar"), ("Aktif", "Durum")],
+                avatar_cols=["Isim"], bool_cols=["Aktif"], max_text=40,
+            )
             st.metric("Toplam", len(g))
 
     # ── TAB 1: Yeni Ekle ─────────────────────────────────────────────────────
