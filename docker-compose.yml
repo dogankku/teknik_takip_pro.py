@@ -1,0 +1,45 @@
+version: "3.9"
+
+# ── Teknik Takip Pro — Docker Compose ────────────────────────────────────────
+# Hızlı başlatma:
+#   docker compose up -d
+#
+# Logları izle:
+#   docker compose logs -f
+#
+# Güncelleme:
+#   docker compose pull && docker compose up -d --build
+
+services:
+  teknik-takip:
+    build: .
+    container_name: teknik-takip-pro
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8501}:8501"
+    volumes:
+      # SQLite veritabanı ve yüklenen medya dosyaları kalıcı olarak saklanır
+      - ./data:/app/data
+    environment:
+      # Streamlit
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+      # E-posta (bildirim_helper.py tarafından kullanılır)
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      # Telegram Bot (isteğe bağlı)
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      # Twilio WhatsApp (isteğe bağlı)
+      - TWILIO_SID=${TWILIO_SID:-}
+      - TWILIO_TOKEN=${TWILIO_TOKEN:-}
+      - TWILIO_FROM=${TWILIO_FROM:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

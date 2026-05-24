@@ -11,6 +11,21 @@ from style import inject_css, sidebar_brand, sidebar_user_card, sidebar_status, 
 from db import gs_connected, load_data
 from auth import current_user, current_role, has_access, is_logged_in, logout
 
+# ── Cookie oturum başlatma (en erken, herhangi bir widget'tan önce) ───────────
+try:
+    from session_helper import init_cookies, restore_from_cookie
+    init_cookies()
+    if not is_logged_in():
+        # Cookie'den geri yükle; ilk render'da mevcut olmayabilir
+        if "cookie_check_done" not in st.session_state:
+            st.session_state["cookie_check_done"] = True
+            # Cookies async yüklenir; bir rerun ile hazır hale gelir
+            st.rerun()
+        else:
+            restore_from_cookie()
+except Exception:
+    pass
+
 inject_css()
 
 def _load(name: str):
@@ -23,6 +38,7 @@ def _load(name: str):
         raise
 
 login = _load("login")
+setup_wizard = _load("setup_wizard")
 ana_sayfa = _load("ana_sayfa")
 checklist = _load("checklist")
 ariza = _load("ariza")
@@ -47,6 +63,16 @@ maliyet = _load("maliyet")
 duyuru = _load("duyuru")
 rezervasyon = _load("rezervasyon")
 ziyaretci = _load("ziyaretci")
+
+# ── Kurulum sihirbazı — hiç kullanıcı yoksa göster ───────────────────────────
+if not is_logged_in():
+    try:
+        df_users = load_data("kullanici")
+        if df_users.empty:
+            setup_wizard.render()
+            st.stop()
+    except Exception:
+        pass
 
 if not is_logged_in():
     login.render()

@@ -114,9 +114,13 @@ def has_access(modul_key: str) -> bool:
 
 
 def logout():
-    for k in ("current_user", "menu_radio"):
-        if k in st.session_state:
-            del st.session_state[k]
+    try:
+        from session_helper import clear_session_cookie
+        clear_session_cookie()
+    except Exception:
+        pass
+    for k in ("current_user", "menu_radio", "active_module_key"):
+        st.session_state.pop(k, None)
 
 
 def add_user(kullanici_adi: str, sifre: str, ad_soyad: str, rol: str,

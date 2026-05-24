@@ -37,12 +37,15 @@ SHEETS = {
     "rezervasyon": "Rezervasyonlar",
     "ziyaretci":   "Ziyaretciler",
     "kargo":       "Kargolar",
+    # ── Oturum & şifre sıfırlama ─────────────────────────────────────────────
+    "oturum":      "Oturumlar",
+    "sifre_sifir": "SifreSifirlama",
 }
 
 COLS = {
     "checklist":  ["Tarih", "Bolum", "Alt_Grup", "Soru", "Durum", "Aciklama", "Kontrol_Eden", "Puan", "Sablon_ID", "Lokasyon_ID"],
     "ariza":      ["ID", "Tarih", "Saat", "Bolum", "Lokasyon", "Lokasyon_ID", "Ariza_Tanimi", "Sorumlu", "Durum", "Kapanis_Tarihi", "Sure_Saat", "Malzeme_Maliyet", "Iscilik_Maliyet"],
-    "vardiya":    ["Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Notlar"],
+    "vardiya":    ["Vardiya_ID", "Tarih", "Vardiya", "Teslim_Eden", "Teslim_Alan", "Notlar"],
     "personel":   ["Isim", "Gorev", "Telefon", "Email", "Adres", "Dogum_Tarihi", "Sertifikalar", "Aktif"],
     "ekipman":    ["Barkod_ID", "Ekipman_Adi", "Kategori", "Lokasyon", "Marka_Model", "Seri_No", "Satin_Alma", "Sonraki_Bakim", "Durum", "Notlar"],
     "kullanici":  ["Kullanici_Adi", "Sifre_Hash", "Ad_Soyad", "Rol", "Daire_ID", "Telefon", "Email", "Aktif", "Olusturma", "Ekstra_Modul", "Kapali_Modul"],
@@ -71,6 +74,9 @@ COLS = {
     "rezervasyon":["Rezervasyon_ID", "Tarih", "Saat", "Alan", "Daire_ID", "Talep_Eden", "Katilimci", "Notlar", "Durum", "Olusturma"],
     "ziyaretci":  ["Ziyaret_ID", "Daire_ID", "Ziyaretci_Adi", "Giris_Saati", "Cikis_Saati", "Amac", "Plaka", "Kaydeden", "Tarih"],
     "kargo":      ["Kargo_ID", "Daire_ID", "Firma", "Takip_No", "Gelis_Tarihi", "Teslim_Tarihi", "Durum", "Notlar"],
+    # ── Oturum & şifre sıfırlama ─────────────────────────────────────────────
+    "oturum":     ["Token", "Kullanici_Adi", "Olusturma", "Son_Kullanma", "Aktif"],
+    "sifre_sifir":["Token", "Kullanici_Adi", "Olusturma", "Kullanildi"],
 }
 
 ROLLER = ["Admin", "Yonetici", "Teknisyen", "Sakin"]

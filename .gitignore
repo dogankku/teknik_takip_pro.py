@@ -6,3 +6,9 @@ __pycache__/
 google_credentials.json
 spreadsheet_id.txt
 .streamlit/secrets.toml
+
+# Veri dizini: DB'yi dışarıda bırak, .gitkeep'i tut
+data/*.db
+data/*.db-wal
+data/*.db-shm
+!data/.gitkeep
